@@ -1,15 +1,14 @@
 package us.phyxsi.spotifystreamer;
 
+import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SearchView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
@@ -17,11 +16,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ArtistFragment())
-                    .commit();
-        }
 
         // Handle artist search when a search is performed on the EditText
 //        final EditText artistSearch = (EditText) findViewById(R.id.artist_search);
