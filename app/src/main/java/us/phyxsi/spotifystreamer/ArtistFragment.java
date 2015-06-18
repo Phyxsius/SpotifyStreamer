@@ -13,11 +13,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
-import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Artist;
 
 /**
  * A fragment representing a list of Items.
@@ -29,8 +29,9 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
  * interface.
  */
 public class ArtistFragment extends Fragment {
+    private final String LOG_TAG = ArtistFragment.class.getSimpleName();
 
-    private ArrayAdapter<String> mArtistAdapter;
+    private ArrayAdapter<Artist> mArtistAdapter;
 
     private OnFragmentInteractionListener mListener;
 
@@ -62,24 +63,12 @@ public class ArtistFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_artist, container, false);
 
-        String[] data = {
-                "Mon 6/23â€‚- Sunny - 31/17",
-                "Tue 6/24 - Foggy - 21/8",
-                "Wed 6/25 - Cloudy - 22/17",
-                "Thurs 6/26 - Rainy - 18/11",
-                "Fri 6/27 - Foggy - 21/10",
-                "Sat 6/28 - TRAPPED IN WEATHERSTATION - 23/18",
-                "Sun 6/29 - Sunny - 20/7"
-        };
-        List<String> artistData = new ArrayList<String>(Arrays.asList(data));
 
-        mArtistAdapter =
-                new ArrayAdapter<String>(
-                        getActivity(),
-                        R.layout.list_item_artist,
-                        R.id.list_item_artist_name,
-                        artistData
-                );
+        mArtistAdapter = new ArtistAdapter(
+                getActivity(),
+                R.layout.list_item_artist,
+                new ArrayList<Artist>()
+        );
 
         ListView listView = (ListView) view.findViewById(R.id.listview_artist);
         listView.setAdapter(mArtistAdapter);
@@ -124,22 +113,31 @@ public class ArtistFragment extends Fragment {
         public void onFragmentInteraction(String id);
     }
 
+    public void searchArtist(String artist) {
+        new FetchArtistTask().execute(artist);
+    }
 
-    public class FetchArtistTask extends AsyncTask<String, Void, ArtistsPager[]> {
+
+    private class FetchArtistTask extends AsyncTask<String, Void, List<Artist>> {
 
         private final String LOG_TAG = FetchArtistTask.class.getSimpleName();
 
         private SpotifyApi api;
 
         @Override
-        protected ArtistsPager[] doInBackground(String... params) {
+        protected List<Artist> doInBackground(String... params) {
+            api = new SpotifyApi();
+            SpotifyService spotify = api.getService();
 
-            return null;
+            return spotify.searchArtists(params[0]).artists.items;
         }
 
         @Override
-        protected void onPostExecute(ArtistsPager[] result) {
-
+        protected void onPostExecute(List<Artist> result) {
+            if (result != null) {
+                mArtistAdapter.clear();
+                mArtistAdapter.addAll(result);
+            }
         }
     }
 }

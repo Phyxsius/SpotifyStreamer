@@ -3,6 +3,7 @@ package us.phyxsi.spotifystreamer;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,24 +13,21 @@ public class MainActivity extends Activity {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
+    ArtistFragment artistFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Handle artist search when a search is performed on the EditText
-//        final EditText artistSearch = (EditText) findViewById(R.id.artist_search);
-//        artistSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-//            @Override
-//            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-//                boolean handled = false;
-//                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-////                    new ArtistFragment.FetchArtistTask()
-//                    handled = true;
-//                }
-//                return handled;
-//            }
-//        });
+        // Get the intent, verify the action and get the query
+        Intent intent = getIntent();
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
+
+            artistFragment.searchArtist(query);
+        }
 
     }
 
