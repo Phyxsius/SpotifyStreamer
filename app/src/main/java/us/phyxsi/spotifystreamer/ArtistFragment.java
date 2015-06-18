@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -134,10 +135,14 @@ public class ArtistFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<Artist> result) {
-            if (result != null) {
-                mArtistAdapter.clear();
-                mArtistAdapter.addAll(result);
-            }
+            if (result.size() == 0)
+                Toast.makeText(
+                        getActivity().getApplicationContext(),
+                        getString(R.string.empty_artist),
+                        Toast.LENGTH_SHORT).show();
+
+            mArtistAdapter.clear();
+            mArtistAdapter.addAll(result);
         }
     }
 }

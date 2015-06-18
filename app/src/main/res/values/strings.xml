@@ -5,4 +5,5 @@
 
     <string name="search_title">Search</string>
     <string name="search_hint">Search for artist</string>
+    <string name="empty_artist">No artist found</string>
 </resources>
