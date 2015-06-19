@@ -1,8 +1,8 @@
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fragment_artist"
-    android:name="us.phyxsi.spotifystreamer.ArtistFragment"
+    android:id="@+id/fragment_tracks"
+    android:name="us.phyxsi.spotifystreamer.TracksFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="us.phyxsi.spotifystreamer.ArtistFragment"
+    tools:context="us.phyxsi.spotifystreamer.TracksFragment"
     tools:layout="@layout/fragment_list" />

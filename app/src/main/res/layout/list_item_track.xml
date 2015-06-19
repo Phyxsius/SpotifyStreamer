@@ -26,15 +26,21 @@
         android:layout_height="fill_parent"
         android:layout_width="0dp"
         android:layout_weight="7"
-        android:orientation="vertical"
-        android:gravity="center_vertical">
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/list_item_artist_name"
+            android:id="@+id/list_item_track"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:paddingTop="20dp"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/list_item_album"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
             android:paddingBottom="24dp"
             android:ellipsize="end" />
     </LinearLayout>

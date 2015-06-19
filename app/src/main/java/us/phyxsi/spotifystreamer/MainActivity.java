@@ -26,7 +26,7 @@ public class MainActivity extends Activity {
             String query = intent.getStringExtra(SearchManager.QUERY);
             artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
 
-            artistFragment.searchArtist(query);
+            artistFragment.fetchArtist(query);
         }
 
     }
