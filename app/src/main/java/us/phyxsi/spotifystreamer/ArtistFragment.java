@@ -7,9 +7,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -25,8 +27,6 @@ import kaaes.spotify.webapi.android.models.Artist;
  * Large screen devices (such as tablets) are supported by replacing the ListView
  * with a GridView.
  * <p/>
- * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
- * interface.
  */
 public class ArtistFragment extends Fragment implements ListView.OnItemClickListener {
     private final String LOG_TAG = ArtistFragment.class.getSimpleName();
@@ -34,6 +34,7 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
     public final static String ARTIST_NAME = "ARTIST_NAME";
 
     private ArrayAdapter<Artist> mArtistAdapter;
+    private AbsListView mListView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -59,11 +60,11 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
                 new ArrayList<Artist>()
         );
 
-        ListView listView = (ListView) view.findViewById(R.id.listview_items);
-        listView.setAdapter(mArtistAdapter);
+        mListView = (AbsListView) view.findViewById(android.R.id.list);
+        mListView.setAdapter(mArtistAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
-        listView.setOnItemClickListener(this);
+        mListView.setOnItemClickListener(this);
 
         return view;
     }
@@ -88,18 +89,16 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
     }
 
     /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
+     * The default content for this Fragment has a TextView that is shown when
+     * the list is empty. If you would like to change the text, call this method
+     * to supply the text it should use.
      */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+    public void setEmptyText(CharSequence emptyText) {
+        View emptyView = mListView.getEmptyView();
+
+        if (emptyView instanceof TextView) {
+            ((TextView) emptyView).setText(emptyText);
+        }
     }
 
     public void fetchArtist(String artist) {
@@ -109,25 +108,37 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
 
     private class FetchArtistTask extends AsyncTask<String, Void, List<Artist>> {
 
-        private final String LOG_TAG = FetchArtistTask.class.getSimpleName();
-
+        private boolean apiException = false;
         private SpotifyApi api;
 
         @Override
         protected List<Artist> doInBackground(String... params) {
-            api = new SpotifyApi();
-            SpotifyService spotify = api.getService();
+            try {
+                api = new SpotifyApi();
+                SpotifyService spotify = api.getService();
 
-            return spotify.searchArtists(params[0]).artists.items;
+                return spotify.searchArtists(params[0]).artists.items;
+            } catch (Exception e) {
+                this.apiException = true;
+            }
+
+            return new ArrayList<>();
         }
 
         @Override
         protected void onPostExecute(List<Artist> result) {
-            if (result.size() == 0)
-                Toast.makeText(
-                        getActivity().getApplicationContext(),
-                        getString(R.string.empty_artist),
+            if (apiException)
+                Toast.makeText(getActivity(),
+                        getString(R.string.artist_api_error),
                         Toast.LENGTH_SHORT).show();
+            else {
+                if (result.size() == 0) {
+                    Toast.makeText(
+                            getActivity().getApplicationContext(),
+                            getString(R.string.empty_artist),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
 
             mArtistAdapter.clear();
             mArtistAdapter.addAll(result);

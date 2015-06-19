@@ -3,10 +3,13 @@ package us.phyxsi.spotifystreamer;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SearchView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -18,6 +21,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
     }
 
     @Override
@@ -33,9 +38,16 @@ public class MainActivity extends Activity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
+                if (isOnline()) {
+                    artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
+                    artistFragment.fetchArtist(query);
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.network_offline),
+                            Toast.LENGTH_LONG).show();
 
-                artistFragment.fetchArtist(query);
+                    return false;
+                }
 
                 return true;
             }
@@ -64,4 +76,11 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
+
+    public boolean isOnline() {
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
+    }
 }

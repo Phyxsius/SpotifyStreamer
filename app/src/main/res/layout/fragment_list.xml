@@ -5,8 +5,13 @@
     tools:context=".MainActivity$ArtistFragment">
 
     <ListView
-        android:id="@+id/listview_items"
+        android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <TextView android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center" />
 
 </FrameLayout>
