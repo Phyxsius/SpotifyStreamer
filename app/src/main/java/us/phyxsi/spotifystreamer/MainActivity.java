@@ -3,7 +3,6 @@ package us.phyxsi.spotifystreamer;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,16 +18,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Get the intent, verify the action and get the query
-        Intent intent = getIntent();
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
-
-            artistFragment.fetchArtist(query);
-        }
-
     }
 
     @Override
@@ -40,6 +29,22 @@ public class MainActivity extends Activity {
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
+
+                artistFragment.fetchArtist(query);
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
 
         return true;
     }
