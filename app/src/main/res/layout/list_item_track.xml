@@ -41,7 +41,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:paddingTop="@dimen/list_item_padding_bottom"
+            android:paddingBottom="@dimen/list_item_padding_bottom"
             android:ellipsize="end" />
     </LinearLayout>
 </LinearLayout>

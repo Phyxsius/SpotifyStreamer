@@ -1,6 +1,7 @@
 package us.phyxsi.spotifystreamer;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,13 +14,11 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.Artist;
-
-public class ArtistAdapter extends ArrayAdapter<Artist> {
+public class ArtistAdapter extends ArrayAdapter<ParcableArtist> {
     private Context context;
     private LayoutInflater mLayoutInflater;
 
-    public ArtistAdapter(Context context, int resource, List<Artist> objects) {
+    public ArtistAdapter(Context context, int resource, List<ParcableArtist> objects) {
         super(context, resource, objects);
 
         this.context = context;
@@ -39,15 +38,15 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
         TextView artistName = (TextView) view.findViewById(R.id.list_item_artist_name);
         ImageView artistImage = (ImageView) view.findViewById(R.id.list_item_icon);
 
-        Artist artist = getItem(position);
+        ParcableArtist artist = getItem(position);
         artistName.setText(artist.name);
 
         DisplayMetrics displayMetrics = getContext().getResources().getDisplayMetrics();
         int imageDimension = Math.round(86 * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
 
-        if (artist.images.size() > 0) {
+        if (!TextUtils.isEmpty(artist.imageUrl)) {
             Picasso.with(this.context)
-                    .load(artist.images.get(0).url)
+                    .load(artist.imageUrl)
                     .resize(imageDimension, imageDimension)
                     .into(artistImage);
         }

@@ -21,15 +21,18 @@ import java.util.Map;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
+import retrofit.RetrofitError;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 public class TracksFragment extends Fragment implements ListView.OnItemClickListener {
     private final String LOG_TAG = TracksFragment.class.getSimpleName();
+    private final String TRACK_LIST = "TRACK_LIST";
 
-    private ArrayAdapter<Track> mTracksAdapter;
+    private ArrayAdapter<ParcableTrack> mTracksAdapter;
     private AbsListView mListView;
+    private ArrayList<ParcableTrack> mTracks;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -48,13 +51,6 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list, container, false);
 
-
-        mTracksAdapter = new TrackAdapter(
-                getActivity(),
-                R.layout.list_item_track,
-                new ArrayList<Track>()
-        );
-
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mTracksAdapter);
 
@@ -62,6 +58,32 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         mListView.setOnItemClickListener(this);
 
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mTracks = (ArrayList<ParcableTrack>) savedInstanceState.get(TRACK_LIST);
+        } else {
+            mTracks = new ArrayList<>();
+        }
+
+        mTracksAdapter = new TrackAdapter(
+                getActivity(),
+                R.layout.list_item_track,
+                mTracks
+        );
+
+        mTracksAdapter.notifyDataSetChanged();
+        mListView.setAdapter(mTracksAdapter);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(TRACK_LIST, mTracks);
     }
 
     @Override
@@ -102,7 +124,7 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
 
     private class FetchTracksTask extends AsyncTask<String, Void, List<Track>> {
 
-        private boolean apiException = false;
+        private RetrofitError apiException = null;
         private SpotifyApi api;
 
         @Override
@@ -116,8 +138,8 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                 map.put("country", "US");
 
                 return spotify.getArtistTopTrack(params[0], map).tracks;
-            } catch (Exception e) {
-                this.apiException = true;
+            } catch (RetrofitError e) {
+                this.apiException = e;
             }
 
             return new ArrayList<>();
@@ -125,20 +147,30 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
 
         @Override
         protected void onPostExecute(List<Track> result) {
-            if (apiException)
+            if (apiException != null) {
                 Toast.makeText(getActivity(),
                         getString(R.string.tracks_api_error),
                         Toast.LENGTH_SHORT).show();
-            else {
-                if (result.size() == 0)
+                return;
+            } else {
+                if (result.size() == 0) {
                     Toast.makeText(
                             getActivity().getApplicationContext(),
                             getString(R.string.empty_tracks),
                             Toast.LENGTH_SHORT).show();
+                    return;
+                }
             }
 
             mTracksAdapter.clear();
-            mTracksAdapter.addAll(result);
+            for (Track track : result) {
+                mTracksAdapter.add(new ParcableTrack(
+                        track.name,
+                        track.artists.get(0).name,
+                        track.album.name,
+                        track.album.images.size() > 0 ? track.album.images.get(0).url : ""
+                ));
+            }
         }
     }
 }

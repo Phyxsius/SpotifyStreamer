@@ -1,6 +1,7 @@
 package us.phyxsi.spotifystreamer;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,13 +14,11 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.Track;
-
-public class TrackAdapter extends ArrayAdapter<Track> {
+public class TrackAdapter extends ArrayAdapter<ParcableTrack> {
     private Context context;
     private LayoutInflater mLayoutInflater;
 
-    public TrackAdapter(Context context, int resource, List<Track> objects) {
+    public TrackAdapter(Context context, int resource, List<ParcableTrack> objects) {
         super(context, resource, objects);
 
         this.context = context;
@@ -40,16 +39,16 @@ public class TrackAdapter extends ArrayAdapter<Track> {
         TextView albumName = (TextView) view.findViewById(R.id.list_item_album);
         ImageView albumImage = (ImageView) view.findViewById(R.id.list_item_icon);
 
-        Track track = getItem(position);
+        ParcableTrack track = getItem(position);
         trackName.setText(track.name);
-        albumName.setText(track.album.name);
+        albumName.setText(track.album);
 
         DisplayMetrics displayMetrics = getContext().getResources().getDisplayMetrics();
         int imageDimension = Math.round(86 * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
 
-        if (track.album.images.size() > 0) {
+        if (!TextUtils.isEmpty(track.imageUrl)) {
             Picasso.with(this.context)
-                    .load(track.album.images.get(0).url)
+                    .load(track.imageUrl)
                     .resize(imageDimension, imageDimension)
                     .into(albumImage);
         }

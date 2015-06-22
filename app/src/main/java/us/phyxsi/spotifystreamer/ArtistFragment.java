@@ -20,6 +20,7 @@ import java.util.List;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
+import retrofit.RetrofitError;
 
 /**
  * A fragment representing a list of Items.
@@ -30,11 +31,13 @@ import kaaes.spotify.webapi.android.models.Artist;
  */
 public class ArtistFragment extends Fragment implements ListView.OnItemClickListener {
     private final String LOG_TAG = ArtistFragment.class.getSimpleName();
+    private final String ARTIST_KEY = "ARTIST_KEY";
     public final static String ARTIST_ID = "ARTIST_ID";
     public final static String ARTIST_NAME = "ARTIST_NAME";
 
-    private ArrayAdapter<Artist> mArtistAdapter;
+    private ArrayAdapter<ParcableArtist> mArtistAdapter;
     private AbsListView mListView;
+    private ArrayList<ParcableArtist> mArtists;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -53,13 +56,6 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list, container, false);
 
-
-        mArtistAdapter = new ArtistAdapter(
-                getActivity(),
-                R.layout.list_item_artist,
-                new ArrayList<Artist>()
-        );
-
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mArtistAdapter);
 
@@ -70,6 +66,32 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mArtists = (ArrayList<ParcableArtist>) savedInstanceState.get(ARTIST_KEY);
+        } else {
+            mArtists = new ArrayList<>();
+        }
+
+        mArtistAdapter = new ArtistAdapter(
+                getActivity(),
+                R.layout.list_item_artist,
+                mArtists
+        );
+
+        mArtistAdapter.notifyDataSetChanged();
+        mListView.setAdapter(mArtistAdapter);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(ARTIST_KEY, mArtists);
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         mArtistAdapter = null;
@@ -77,7 +99,7 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Artist artist = (Artist) parent.getItemAtPosition(position);
+        ParcableArtist artist = (ParcableArtist) parent.getItemAtPosition(position);
 
         if (artist != null) {
             Intent intent = new Intent(getActivity(), TracksActivity.class)
@@ -118,7 +140,7 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
                 SpotifyService spotify = api.getService();
 
                 return spotify.searchArtists(params[0]).artists.items;
-            } catch (Exception e) {
+            } catch (RetrofitError e) {
                 this.apiException = true;
             }
 
@@ -127,21 +149,31 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
 
         @Override
         protected void onPostExecute(List<Artist> result) {
-            if (apiException)
+            if (apiException) {
                 Toast.makeText(getActivity(),
                         getString(R.string.artist_api_error),
                         Toast.LENGTH_SHORT).show();
-            else {
+                return;
+            } else {
                 if (result.size() == 0) {
                     Toast.makeText(
                             getActivity().getApplicationContext(),
                             getString(R.string.empty_artist),
                             Toast.LENGTH_SHORT).show();
+                    return;
                 }
             }
 
             mArtistAdapter.clear();
-            mArtistAdapter.addAll(result);
+            mArtistAdapter.notifyDataSetChanged();
+
+            for (Artist artist : result) {
+                mArtists.add(new ParcableArtist(
+                        artist.id,
+                        artist.name,
+                        artist.images.size() > 0 ? artist.images.get(0).url : ""
+                ));
+            }
         }
     }
 }
