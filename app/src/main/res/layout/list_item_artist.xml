@@ -9,16 +9,16 @@
     android:baselineAligned="false">
 
     <FrameLayout
-        android:layout_width="92dp"
-        android:layout_height="86dp">
+        android:layout_width="@dimen/list_item_icon_width"
+        android:layout_height="@dimen/list_item_icon_height">
 
         <ImageView
             android:id="@+id/list_item_icon"
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp" />
+            android:paddingLeft="@dimen/list_item_icon_padding"
+            android:paddingRight="@dimen/list_item_icon_padding" />
 
     </FrameLayout>
 
@@ -34,8 +34,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:paddingTop="20dp"
-            android:paddingBottom="24dp"
+            android:paddingTop="@dimen/list_item_padding_top"
+            android:paddingBottom="@dimen/list_item_padding_bottom"
             android:ellipsize="end" />
     </LinearLayout>
 </LinearLayout>
