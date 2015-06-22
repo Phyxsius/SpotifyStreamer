@@ -31,7 +31,7 @@ import retrofit.RetrofitError;
  */
 public class ArtistFragment extends Fragment implements ListView.OnItemClickListener {
     private final String LOG_TAG = ArtistFragment.class.getSimpleName();
-    private final String ARTIST_KEY = "ARTIST_KEY";
+    private final String ARTIST_LIST = "ARTIST_LIST";
     public final static String ARTIST_ID = "ARTIST_ID";
     public final static String ARTIST_NAME = "ARTIST_NAME";
 
@@ -70,7 +70,7 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
         super.onActivityCreated(savedInstanceState);
 
         if (savedInstanceState != null) {
-            mArtists = (ArrayList<ParcableArtist>) savedInstanceState.get(ARTIST_KEY);
+            mArtists = (ArrayList<ParcableArtist>) savedInstanceState.get(ARTIST_LIST);
         } else {
             mArtists = new ArrayList<>();
         }
@@ -88,7 +88,7 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(ARTIST_KEY, mArtists);
+        outState.putSerializable(ARTIST_LIST, mArtists);
     }
 
     @Override
