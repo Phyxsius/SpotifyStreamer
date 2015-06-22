@@ -8,6 +8,9 @@ import android.view.MenuItem;
 
 public class TracksActivity extends FragmentActivity {
 
+    public String artistId;
+    private String artistName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -15,15 +18,10 @@ public class TracksActivity extends FragmentActivity {
 
         Intent intent = getIntent();
 
-        String artistId = intent.getStringExtra(ArtistFragment.ARTIST_ID);
-        String artistName = intent.getStringExtra(ArtistFragment.ARTIST_NAME);
+        this.artistId = intent.getStringExtra(ArtistFragment.ARTIST_ID);
+        this.artistName = intent.getStringExtra(ArtistFragment.ARTIST_NAME);
 
-        getActionBar().setSubtitle(artistName);
-
-        TracksFragment tracksFragment =
-                (TracksFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_tracks);
-
-        tracksFragment.fetchTracks(artistId);
+        getActionBar().setSubtitle(this.artistName);
     }
 
 

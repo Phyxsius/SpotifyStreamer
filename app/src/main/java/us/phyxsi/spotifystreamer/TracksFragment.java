@@ -51,6 +51,11 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list, container, false);
 
+        if (savedInstanceState == null) {
+//            assert TracksActivity.artistId != null;
+//            this.fetchTracks(TracksActivity.artistId);
+        }
+
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mTracksAdapter);
 
