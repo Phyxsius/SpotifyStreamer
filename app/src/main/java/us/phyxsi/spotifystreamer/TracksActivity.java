@@ -1,5 +1,6 @@
 package us.phyxsi.spotifystreamer;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -8,7 +9,7 @@ import android.view.MenuItem;
 
 public class TracksActivity extends FragmentActivity {
 
-    public String artistId;
+    private String artistId;
     private String artistName;
 
     @Override
@@ -21,7 +22,9 @@ public class TracksActivity extends FragmentActivity {
         this.artistId = intent.getStringExtra(ArtistFragment.ARTIST_ID);
         this.artistName = intent.getStringExtra(ArtistFragment.ARTIST_NAME);
 
-        getActionBar().setSubtitle(this.artistName);
+        ActionBar actionBar = getActionBar();
+
+        if (actionBar != null) getActionBar().setSubtitle(this.artistName);
     }
 
 
@@ -46,4 +49,13 @@ public class TracksActivity extends FragmentActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    public String getArtistId() {
+        return artistId;
+    }
+
+    public String getArtistName() {
+        return artistName;
+    }
+
 }

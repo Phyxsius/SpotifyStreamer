@@ -51,11 +51,6 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list, container, false);
 
-        if (savedInstanceState == null) {
-//            assert TracksActivity.artistId != null;
-//            this.fetchTracks(TracksActivity.artistId);
-        }
-
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mTracksAdapter);
 
@@ -73,6 +68,10 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
             mTracks = (ArrayList<ParcableTrack>) savedInstanceState.get(TRACK_LIST);
         } else {
             mTracks = new ArrayList<>();
+
+            // No previous results found so we can fetch the tracks
+            // for the first time for this artist
+            this.fetchTracks(((TracksActivity) getActivity()).getArtistId());
         }
 
         mTracksAdapter = new TrackAdapter(
