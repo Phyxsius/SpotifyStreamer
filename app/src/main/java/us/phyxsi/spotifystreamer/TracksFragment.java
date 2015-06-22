@@ -94,7 +94,7 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Track track = (Track) parent.getItemAtPosition(position);
+        ParcableTrack track = (ParcableTrack) parent.getItemAtPosition(position);
 
 //        if (artist != null) {
 //            Intent intent = new Intent(getActivity(), TracksActivity.class)
