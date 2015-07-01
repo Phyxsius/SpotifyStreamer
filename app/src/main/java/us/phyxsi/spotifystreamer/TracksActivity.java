@@ -1,30 +1,36 @@
 package us.phyxsi.spotifystreamer;
 
-import android.app.ActionBar;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class TracksActivity extends FragmentActivity {
+public class TracksActivity extends AppCompatActivity {
 
-    private String artistId;
-    private String artistName;
+    private ParcableArtist mArtist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tracks);
 
-        Intent intent = getIntent();
+        if (savedInstanceState == null) {
+            Bundle arguments = new Bundle();
+            mArtist = (ParcableArtist) getIntent().getParcelableExtra(TracksFragment.ARTIST);
 
-        this.artistId = intent.getStringExtra(ArtistFragment.ARTIST_ID);
-        this.artistName = intent.getStringExtra(ArtistFragment.ARTIST_NAME);
+            assert getSupportActionBar() != null;
+            getSupportActionBar().setSubtitle(mArtist.name);
 
-        ActionBar actionBar = getActionBar();
 
-        if (actionBar != null) getActionBar().setSubtitle(this.artistName);
+            arguments.putParcelable(TracksFragment.ARTIST, mArtist);
+
+            TracksFragment fragment = new TracksFragment();
+            fragment.setArguments(arguments);
+
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.tracks_container, fragment)
+                    .commit();
+        }
     }
 
 
@@ -48,14 +54,6 @@ public class TracksActivity extends FragmentActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public String getArtistId() {
-        return artistId;
-    }
-
-    public String getArtistName() {
-        return artistName;
     }
 
 }

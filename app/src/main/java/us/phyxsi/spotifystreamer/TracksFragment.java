@@ -29,10 +29,12 @@ import retrofit.RetrofitError;
 public class TracksFragment extends Fragment implements ListView.OnItemClickListener {
     private final String LOG_TAG = TracksFragment.class.getSimpleName();
     private final String TRACK_LIST = "TRACK_LIST";
+    static final String ARTIST = "ARTIST";
 
     private ArrayAdapter<ParcableTrack> mTracksAdapter;
     private AbsListView mListView;
     private ArrayList<ParcableTrack> mTracks;
+    private ParcableArtist mArtist;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -50,6 +52,11 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list, container, false);
+
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mArtist = arguments.getParcelable(TracksFragment.ARTIST);
+        }
 
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mTracksAdapter);
@@ -71,7 +78,8 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
 
             // No previous results found so we can fetch the tracks
             // for the first time for this artist
-            this.fetchTracks(((TracksActivity) getActivity()).getArtistId());
+            if (null != mArtist)
+                this.fetchTracks(mArtist.id);
         }
 
         mTracksAdapter = new TrackAdapter(
@@ -166,14 +174,16 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                 }
             }
 
-            mTracksAdapter.clear();
-            for (Track track : result) {
-                mTracksAdapter.add(new ParcableTrack(
-                        track.name,
-                        track.artists.get(0).name,
-                        track.album.name,
-                        track.album.images.size() > 0 ? track.album.images.get(0).url : ""
-                ));
+            if (mTracksAdapter != null) {
+                mTracksAdapter.clear();
+                for (Track track : result) {
+                    mTracksAdapter.add(new ParcableTrack(
+                            track.name,
+                            track.artists.get(0).name,
+                            track.album.name,
+                            track.album.images.size() > 0 ? track.album.images.get(0).url : ""
+                    ));
+                }
             }
         }
     }

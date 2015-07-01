@@ -1,26 +1,41 @@
 package us.phyxsi.spotifystreamer;
 
-import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SearchView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity implements ArtistFragment.Callback {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String TRACKSFRAGMENT_TAG = "TFTAG";
 
+    private boolean mTwoPane;
     ArtistFragment artistFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+        if (findViewById(R.id.tracks_container) != null) {
+            mTwoPane = true;
+
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.tracks_container, new TracksFragment(), TRACKSFRAGMENT_TAG)
+                        .commit();
+            }
+        } else
+            mTwoPane = false;
     }
 
     @Override
@@ -30,7 +45,7 @@ public class MainActivity extends Activity {
 
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.search));
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -72,6 +87,26 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemSelected(ParcableArtist artist) {
+        if (mTwoPane) {
+            Bundle args = new Bundle();
+            args.putParcelable(TracksFragment.ARTIST, artist);
+
+            TracksFragment fragment = new TracksFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.tracks_container, fragment, TRACKSFRAGMENT_TAG)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, TracksActivity.class)
+                    .putExtra(TracksFragment.ARTIST, artist);
+
+            startActivity(intent);
+        }
     }
 
 
