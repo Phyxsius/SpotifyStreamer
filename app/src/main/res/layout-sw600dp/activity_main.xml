@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:baselineAligned="false"
-    android:divider="@drawable/abc_list_divider_mtrl_alpha"
+    android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
     tools:context="us.phyxsi.spotifystreamer.MainActivity">
 

@@ -17,5 +17,7 @@
     <!-- Tracks Activity & Fragment -->
     <string name="empty_tracks">No tracks found</string>
     <string name="tracks_api_error">"Can't load tracks. Try again."</string>
+    <string name="title_activity_player">PlayerActivity</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>

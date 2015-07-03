@@ -1,5 +1,6 @@
 package us.phyxsi.spotifystreamer;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -108,12 +109,11 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ParcableTrack track = (ParcableTrack) parent.getItemAtPosition(position);
 
-//        if (artist != null) {
-//            Intent intent = new Intent(getActivity(), TracksActivity.class)
-//                    .putExtra(Intent.EXTRA_TEXT, artist.name);
-//
-//            startActivity(intent);
-//        }
+        if (track != null) {
+            Intent intent = new Intent(getActivity(), PlayerActivity.class);
+
+            startActivity(intent);
+        }
     }
 
     /**
