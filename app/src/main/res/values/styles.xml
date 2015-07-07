@@ -14,6 +14,9 @@
     <style name="PlayerTheme" parent="@style/Theme.AppCompat.Light.DialogWhenLarge">
     </style>
 
+    <style name="SettingsTheme" parent="SpotifyStreamer">
+    </style>
+
     <style name="GeneralListStyle">
         <!-- Here it's a stub.  In screens of sufficient width, this style includes modifications
        for two-pane layout -->

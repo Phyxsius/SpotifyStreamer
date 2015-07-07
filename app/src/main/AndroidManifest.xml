@@ -38,7 +38,16 @@
             android:name=".PlayerActivity"
             android:label="@string/title_activity_player"
             android:parentActivityName=".TracksActivity"
-            android:theme="@style/PlayerTheme">
+            android:theme="@style/PlayerTheme" >
+        </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/action_settings"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/SettingsTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="us.phyxsi.spotifystreamer.MainActivity" />
         </activity>
     </application>
 

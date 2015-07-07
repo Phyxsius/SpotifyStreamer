@@ -1,8 +1,10 @@
 package us.phyxsi.spotifystreamer;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import retrofit.RetrofitError;
@@ -145,9 +148,13 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                 api = new SpotifyApi();
                 SpotifyService spotify = api.getService();
 
+                SharedPreferences prefs =
+                        PreferenceManager.getDefaultSharedPreferences(getActivity());
+
                 Map<String, Object> map = new HashMap<String, Object>() {
                 };
-                map.put("country", "US");
+                map.put("country", prefs.getString(getString(R.string.pref_country_code_key),
+                        getString(R.string.pref_country_code)));
 
                 return spotify.getArtistTopTrack(params[0], map).tracks;
             } catch (RetrofitError e) {
@@ -160,8 +167,13 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         @Override
         protected void onPostExecute(List<Track> result) {
             if (apiException != null) {
+                SpotifyError spotifyError = SpotifyError.fromRetrofitError(apiException);
+                String error = spotifyError.getErrorDetails().message;
+
+                if (error == null) error = getString(R.string.tracks_api_error);
+
                 Toast.makeText(getActivity(),
-                        getString(R.string.tracks_api_error),
+                        error,
                         Toast.LENGTH_SHORT).show();
                 return;
             } else {
