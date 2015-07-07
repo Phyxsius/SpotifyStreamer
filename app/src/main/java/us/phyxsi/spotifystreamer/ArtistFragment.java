@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import retrofit.RetrofitError;
@@ -156,7 +157,7 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
 
     private class FetchArtistTask extends AsyncTask<String, Void, List<Artist>> {
 
-        private boolean apiException = false;
+        private RetrofitError apiException = null;
         private SpotifyApi api;
 
         @Override
@@ -167,7 +168,7 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
 
                 return spotify.searchArtists(params[0]).artists.items;
             } catch (RetrofitError e) {
-                this.apiException = true;
+                this.apiException = e;
             }
 
             return new ArrayList<>();
@@ -175,9 +176,14 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
 
         @Override
         protected void onPostExecute(List<Artist> result) {
-            if (apiException) {
+            if (apiException != null) {
+                SpotifyError spotifyError = SpotifyError.fromRetrofitError(apiException);
+                String error = spotifyError.getErrorDetails().message;
+
+                if (error == null) error = getString(R.string.artist_api_error);
+
                 Toast.makeText(getActivity(),
-                        getString(R.string.artist_api_error),
+                        error,
                         Toast.LENGTH_SHORT).show();
                 return;
             } else {
