@@ -11,8 +11,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_gravity="center_horizontal|bottom">
+        android:orientation="horizontal"
+        android:layout_weight="1">
 
         <ImageView
             android:id="@+id/player_album_image"
@@ -20,17 +20,18 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@color/primary">
 
             <TextView
                 android:id="@+id/player_track_title"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:textSize="@dimen/display_font_size"
                 android:text="The Walker"
                 android:paddingLeft="@dimen/tablet_keyline_screen_edge"
@@ -41,34 +42,38 @@
             <TextView
                 android:id="@+id/player_artist_name"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:textSize="@dimen/headline_font_size"
                 android:text="Fitz &amp; The Tantrums"
                 android:paddingLeft="@dimen/tablet_keyline_screen_edge"
                 android:paddingRight="@dimen/tablet_keyline_screen_edge"
                 android:paddingBottom="@dimen/tablet_keyline_screen_edge"
-                android:paddingTop="@dimen/zero"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
-                android:background="@color/accent" />
+                android:paddingTop="@dimen/zero" />
         </LinearLayout>
+    </LinearLayout>
 
-        <LinearLayout
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="bottom|center_horizontal">
+
+        <SeekBar
+            android:id="@+id/player_seekbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/transparent">
+            android:layout_gravity="center_horizontal"
+            android:progress="50"
+            android:elevation="9dp"
+            android:layout_marginBottom="-17dp"
+            android:padding="@dimen/zero" />
 
-            <SeekBar
-                android:id="@+id/player_seekbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:progress="1"
-                android:max="10"
-                android:elevation="9dp"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
-                android:padding="@dimen/zero"
-                android:progressBackgroundTint="@android:color/transparent" />
+        <LinearLayout
+            android:id="@+id/player_control_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:background="@color/primary">
 
             <include
                 layout="@layout/player_controls"
@@ -85,5 +90,4 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         style="@style/SpotifyStreamer.Toolbar" />
-
 </RelativeLayout>

@@ -8,8 +8,10 @@
     <dimen name="headline_font_size">24sp</dimen>
 
     <!-- Player Fragment -->
+    <dimen name="player_artist_name_margin_offset">17dp</dimen>
     <dimen name="player_seekbar_height">5dp</dimen>
-    <dimen name="player_playback_controls">64dp</dimen>
+    <dimen name="player_seekbar_margin_offset">-17dp</dimen>
+    <dimen name="player_playback_controls_padding">24dp</dimen>
 
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>

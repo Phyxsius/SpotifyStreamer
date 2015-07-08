@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/player_control_layout"
+    android:background="@color/primary"
+    android:padding="@dimen/player_playback_controls_padding">
+
+    <ImageView
+        android:id="@+id/player_control_prev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:src="@drawable/ic_skip_previous_white_48dp"
+        android:scaleType="centerInside"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:focusable="true"
+        android:clickable="true"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        />
+
+    <ImageView
+        android:id="@+id/player_control_play_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:src="@drawable/ic_play_arrow_white_48dp"
+        android:scaleType="centerInside"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:focusable="true"
+        android:clickable="true"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        />
+
+    <ImageView
+        android:id="@+id/player_control_next"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:src="@drawable/ic_skip_next_white_48dp"
+        android:scaleType="centerInside"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:focusable="true"
+        android:clickable="true"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark"
+        />
+</LinearLayout>

@@ -22,7 +22,6 @@ public class TracksActivity extends AppCompatActivity {
             assert getSupportActionBar() != null;
             getSupportActionBar().setSubtitle(mArtist.name);
 
-
             arguments.putParcelable(TracksFragment.ARTIST, mArtist);
 
             TracksFragment fragment = new TracksFragment();

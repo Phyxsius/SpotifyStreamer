@@ -169,7 +169,9 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         protected void onPostExecute(List<Track> result) {
             if (apiException != null) {
                 SpotifyError spotifyError = SpotifyError.fromRetrofitError(apiException);
-                String error = spotifyError.getErrorDetails().message;
+                String error = spotifyError.getErrorDetails() != null ?
+                        spotifyError.getErrorDetails().message :
+                        null;
 
                 if (error == null) error = getString(R.string.tracks_api_error);
 

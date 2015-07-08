@@ -3,11 +3,14 @@ package us.phyxsi.spotifystreamer;
 import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -28,6 +31,8 @@ public class PlayerFragment extends DialogFragment {
 
     private ParcableTrack mTrack;
 
+    private Toolbar mToolbar;
+
     public PlayerFragment() {
     }
 
@@ -39,11 +44,22 @@ public class PlayerFragment extends DialogFragment {
         return dialog;
     }
 
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        if(getActivity() != null && getActivity() instanceof AppCompatActivity){
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            activity.setSupportActionBar(mToolbar);
+        }
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = view = inflater.inflate(R.layout.fragment_player, container, false);
 
+        mToolbar = (Toolbar) view.findViewById(R.id.actionbar);
         ImageView albumImage = (ImageView) view.findViewById(R.id.player_album_image);
         final TextView trackTitle = (TextView) view.findViewById(R.id.player_track_title);
         final TextView artistName = (TextView) view.findViewById(R.id.player_artist_name);
@@ -55,6 +71,9 @@ public class PlayerFragment extends DialogFragment {
         if (arguments != null) {
             mTrack = arguments.getParcelable(PlayerFragment.TRACK);
         }
+
+        // Set toolbar title
+        mToolbar.setTitle(getString(R.string.now_playing));
 
         // Set the album image
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
@@ -90,7 +109,12 @@ public class PlayerFragment extends DialogFragment {
 
                         playerControls.setBackgroundColor(getSwatchColor(darkMutedSwatch));
 
-                        seekBar.setBackgroundColor(getSwatchColor(vibrantSwatch));
+
+                        // Set statusbar and seekbar color on Lollipop+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            seekBar.getThumb().setTint(getSwatchColor(vibrantSwatch));
+                            getActivity().getWindow().setStatusBarColor(getSwatchColor(mutedSwatch));
+                        }
                     }
                 });
             }

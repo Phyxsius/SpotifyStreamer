@@ -178,7 +178,9 @@ public class ArtistFragment extends Fragment implements ListView.OnItemClickList
         protected void onPostExecute(List<Artist> result) {
             if (apiException != null) {
                 SpotifyError spotifyError = SpotifyError.fromRetrofitError(apiException);
-                String error = spotifyError.getErrorDetails().message;
+                String error = spotifyError.getErrorDetails() != null ?
+                                spotifyError.getErrorDetails().message :
+                                null;
 
                 if (error == null) error = getString(R.string.artist_api_error);
 
