@@ -42,11 +42,7 @@ public class PlayerFragment extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = container;
-
-        if (view == null) {
-            view = inflater.inflate(R.layout.fragment_player, container, false);
-        }
+        View view = view = inflater.inflate(R.layout.fragment_player, container, false);
 
         ImageView albumImage = (ImageView) view.findViewById(R.id.player_album_image);
         final TextView trackTitle = (TextView) view.findViewById(R.id.player_track_title);
