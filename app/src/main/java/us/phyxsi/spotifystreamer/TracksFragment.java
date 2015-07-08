@@ -113,7 +113,8 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         ParcableTrack track = (ParcableTrack) parent.getItemAtPosition(position);
 
         if (track != null) {
-            Intent intent = new Intent(getActivity(), PlayerActivity.class);
+            Intent intent = new Intent(getActivity(), PlayerActivity.class)
+                    .putExtra(PlayerFragment.TRACK, track);
 
             startActivity(intent);
         }

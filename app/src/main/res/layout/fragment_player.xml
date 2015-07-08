@@ -15,36 +15,49 @@
         android:weightSum="1">
 
         <ImageView
-            android:id="@+id/album_image"
+            android:id="@+id/player_album_image"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:scaleType="centerCrop"
-            android:background="@mipmap/ic_launcher" />
+            android:scaleType="centerCrop" />
 
         <TextView
-            android:id="@+id/song_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-        <TextView
-            android:id="@+id/artist_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        
-        <SeekBar
-            android:id="@+id/player_seekbar"
+            android:id="@+id/player_track_title"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/player_seekbar_height"
-            android:layout_gravity="center_horizontal"/>
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/display_font_size"
+            android:text="The Walker"
+            android:paddingLeft="@dimen/tablet_keyline_screen_edge"
+            android:paddingTop="@dimen/tablet_keyline_screen_edge"
+            android:paddingRight="@dimen/tablet_keyline_screen_edge"
+            android:paddingBottom="@dimen/content_area_separation" />
+
+        <TextView
+            android:id="@+id/player_artist_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/headline_font_size"
+            android:text="Fitz &amp; The Tantrums"
+            android:paddingLeft="@dimen/tablet_keyline_screen_edge"
+            android:paddingRight="@dimen/tablet_keyline_screen_edge"
+            android:paddingBottom="@dimen/tablet_keyline_screen_edge"
+            android:paddingTop="@dimen/zero" />
 
         <LinearLayout
+            android:id="@+id/player_control_layout"
             android:layout_width="match_parent"
             android:layout_height="@dimen/player_playback_controls"
             android:orientation="horizontal"
-            android:background="@color/primary"
-            android:layout_weight="1">
+            android:background="@color/primary">
 
+
+            <SeekBar
+                android:id="@+id/player_seekbar"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/player_seekbar_height"
+                android:layout_gravity="center_horizontal"
+                android:progress="50"
+                android:padding="@dimen/zero" />
         </LinearLayout>
     </LinearLayout>
 

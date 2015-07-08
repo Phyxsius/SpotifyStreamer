@@ -1,5 +1,11 @@
 <resources>
     <dimen name="zero">0dp</dimen>
+    <dimen name="tablet_keyline_screen_edge">24dp</dimen>
+    <dimen name="content_area_separation">8dp</dimen>
+    
+    <!-- Font sizes -->
+    <dimen name="display_font_size">34sp</dimen>
+    <dimen name="headline_font_size">24sp</dimen>
 
     <!-- Player Fragment -->
     <dimen name="player_seekbar_height">5dp</dimen>
