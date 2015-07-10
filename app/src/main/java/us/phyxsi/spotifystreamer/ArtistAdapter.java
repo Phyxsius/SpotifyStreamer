@@ -14,6 +14,8 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import us.phyxsi.spotifystreamer.object.ParcableArtist;
+
 public class ArtistAdapter extends ArrayAdapter<ParcableArtist> {
     private Context context;
     private LayoutInflater mLayoutInflater;

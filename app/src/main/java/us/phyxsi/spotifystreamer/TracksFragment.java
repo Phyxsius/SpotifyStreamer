@@ -26,6 +26,9 @@ import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import retrofit.RetrofitError;
+import us.phyxsi.spotifystreamer.object.ParcableArtist;
+import us.phyxsi.spotifystreamer.object.ParcableTrack;
+import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -114,7 +117,8 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
 
         if (track != null) {
             Intent intent = new Intent(getActivity(), PlayerActivity.class)
-                    .putExtra(PlayerFragment.TRACK, track);
+                    .putExtra(PlayerFragment.PLAYER_HELPER,
+                            new PlayerHelper(mArtist, mTracks, position));
 
             startActivity(intent);
         }
@@ -196,7 +200,8 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                             track.name,
                             track.artists.get(0).name,
                             track.album.name,
-                            track.album.images.size() > 0 ? track.album.images.get(0).url : ""
+                            track.album.images.size() > 0 ? track.album.images.get(0).url : "",
+                            track.preview_url
                     ));
                 }
             }

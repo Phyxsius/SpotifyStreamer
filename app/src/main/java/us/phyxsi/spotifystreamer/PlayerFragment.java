@@ -1,10 +1,16 @@
 package us.phyxsi.spotifystreamer;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -25,13 +31,30 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import us.phyxsi.spotifystreamer.object.ParcableTrack;
+import us.phyxsi.spotifystreamer.object.PlayerHelper;
+
 public class PlayerFragment extends DialogFragment {
 
-    static final String TRACK = "TRACK";
+    static final String PLAYER_HELPER = "PLAYER_HELPER";
 
+    private PlayerService mPlayerService;
+    private PlayerHelper mPlayerHelper;
     private ParcableTrack mTrack;
+    private Intent serviceIntent;
+    private boolean serviceBound = false;
+    private boolean isPlaying = false;
 
-    private Toolbar mToolbar;
+    // Views
+    private Toolbar toolbar;
+    private ImageView albumImage;
+    private TextView trackTitle;
+    private TextView artistName;
+    private LinearLayout playerControls;
+    private SeekBar seekBar;
+    private ImageView prevButton;
+    private ImageView nextButton;
+    private ImageView playPauseButton;
 
     public PlayerFragment() {
     }
@@ -48,32 +71,130 @@ public class PlayerFragment extends DialogFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if(getActivity() != null && getActivity() instanceof AppCompatActivity){
-            AppCompatActivity activity = (AppCompatActivity) getActivity();
-            activity.setSupportActionBar(mToolbar);
-        }
+        setupViews();
+
+//        MediaPlayer mediaPlayer = new MediaPlayer();
+//        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//        try {
+//            mediaPlayer.setDataSource(mPlayerHelper.getCurrentTrack().previewUrl);
+//            mediaPlayer.prepare();
+//            mediaPlayer.start();
+//        } catch (IOException e) {
+//
+//        }
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = view = inflater.inflate(R.layout.fragment_player, container, false);
+        View view = inflater.inflate(R.layout.fragment_player, container, false);
 
-        mToolbar = (Toolbar) view.findViewById(R.id.actionbar);
-        ImageView albumImage = (ImageView) view.findViewById(R.id.player_album_image);
-        final TextView trackTitle = (TextView) view.findViewById(R.id.player_track_title);
-        final TextView artistName = (TextView) view.findViewById(R.id.player_artist_name);
-        final LinearLayout playerControls =
-                (LinearLayout) view.findViewById(R.id.player_control_layout);
-        final SeekBar seekBar = (SeekBar) view.findViewById(R.id.player_seekbar);
+        initializeViews(view);
 
         Bundle arguments = getArguments();
         if (arguments != null) {
-            mTrack = arguments.getParcelable(PlayerFragment.TRACK);
+            mPlayerHelper = arguments.getParcelable(PlayerFragment.PLAYER_HELPER);
+
+            mTrack = mPlayerHelper.getCurrentTrack();
+
+            setViewsInfo(mTrack);
         }
 
+        return view;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        if (serviceIntent == null) {
+            serviceIntent = new Intent(activity, PlayerService.class);
+            activity.bindService(serviceIntent, streamingConnection, Context.BIND_AUTO_CREATE);
+            activity.startService(serviceIntent);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        unbindService();
+        super.onDestroy();
+    }
+
+
+
+    private void initializeViews(View view) {
+        toolbar = (Toolbar) view.findViewById(R.id.actionbar);
+        albumImage = (ImageView) view.findViewById(R.id.player_album_image);
+        trackTitle = (TextView) view.findViewById(R.id.player_track_title);
+        artistName = (TextView) view.findViewById(R.id.player_artist_name);
+        playerControls = (LinearLayout) view.findViewById(R.id.player_control_layout);
+        seekBar = (SeekBar) view.findViewById(R.id.player_seekbar);
+
+        prevButton = (ImageView) view.findViewById(R.id.player_control_prev);
+        playPauseButton = (ImageView) view.findViewById(R.id.player_control_play_pause);
+        nextButton = (ImageView) view.findViewById(R.id.player_control_next);
+    }
+
+    private void setupViews() {
+        // ActionBar
+        if(getActivity() != null && getActivity() instanceof AppCompatActivity){
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            activity.setSupportActionBar(toolbar);
+        }
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                unbindService();
+            }
+        });
+
+        // Player controls
+        prevButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mPlayerService != null) mPlayerService.prev();
+            }
+        });
+
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mPlayerService != null) mPlayerService.next();
+            }
+        });
+
+        playPauseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isPlaying = !isPlaying;
+                if (mPlayerService != null) mPlayerService.togglePlay();
+            }
+        });
+
+        // Seekbar
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // TODO: Change the progress text
+                if (mPlayerService != null) mPlayerService.seekTo(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    private void setViewsInfo(ParcableTrack track) {
         // Set toolbar title
-        mToolbar.setTitle(getString(R.string.now_playing));
+        toolbar.setTitle(getString(R.string.now_playing));
 
         // Set the album image
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
@@ -88,6 +209,7 @@ public class PlayerFragment extends DialogFragment {
         // Artist and track details
         trackTitle.setText(mTrack.name);
         artistName.setText(mTrack.artist);
+        seekBar.setMax(mTrack.getDurationInMilli());
 
         // Change widget colors based on album art
         Picasso.with(getActivity()).load(mTrack.imageUrl).into(new Target() {
@@ -133,8 +255,39 @@ public class PlayerFragment extends DialogFragment {
                 return swatch != null ? swatch.getRgb() : 0x000000;
             }
         });
-
-        return view;
     }
 
+    private ServiceConnection streamingConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            PlayerService.StreamingBinder binder = (PlayerService.StreamingBinder) service;
+
+            mPlayerService = binder.getService();
+
+            PlayerHelper helper = mPlayerService.getHelper();
+
+            if (helper != null && helper.equals(mPlayerHelper)) {
+                mPlayerHelper = helper;
+            } else {
+                mPlayerService.setHelper(mPlayerHelper, true);
+            }
+
+            setViewsInfo(mPlayerService.getCurrentTrack());
+
+            serviceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
+
+    public void unbindService() {
+        if (mPlayerService != null) {
+//            mPlayerService.unregisterCallback(null);
+            getActivity().unbindService(streamingConnection);
+            mPlayerService = null;
+        }
+    }
 }

@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import us.phyxsi.spotifystreamer.object.ParcableArtist;
+
 public class TracksActivity extends AppCompatActivity {
 
     private ParcableArtist mArtist;

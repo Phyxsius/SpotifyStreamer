@@ -10,9 +10,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import us.phyxsi.spotifystreamer.object.PlayerHelper;
+
 public class PlayerActivity extends AppCompatActivity {
 
-    private ParcableTrack mTrack;
+    private PlayerHelper mPlayerHelper;
     boolean mIsLargeLayout;
 
     @Override
@@ -25,9 +27,9 @@ public class PlayerActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            mTrack = (ParcableTrack) getIntent().getParcelableExtra(PlayerFragment.TRACK);
+            mPlayerHelper = (PlayerHelper) getIntent().getParcelableExtra(PlayerFragment.PLAYER_HELPER);
 
-            arguments.putParcelable(PlayerFragment.TRACK, mTrack);
+            arguments.putParcelable(PlayerFragment.PLAYER_HELPER, mPlayerHelper);
 
             PlayerFragment fragment = new PlayerFragment();
             fragment.setArguments(arguments);
@@ -43,7 +45,7 @@ public class PlayerActivity extends AppCompatActivity {
                 // To make it fullscreen, use the 'content' root view as the container
                 // for the fragment, which is always the root view for the activity
                 transaction.add(R.id.player_fragment, fragment)
-                        .commit();
+                        .addToBackStack(null).commit();
             }
         }
     }

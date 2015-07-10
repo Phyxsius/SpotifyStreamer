@@ -13,6 +13,8 @@ import android.view.MenuItem;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import us.phyxsi.spotifystreamer.object.ParcableArtist;
+
 public class MainActivity extends AppCompatActivity implements ArtistFragment.Callback {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();

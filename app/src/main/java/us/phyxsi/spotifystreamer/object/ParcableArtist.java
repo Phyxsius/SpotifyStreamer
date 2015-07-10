@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.object;
 
 import android.os.Parcel;
 import android.os.Parcelable;

@@ -37,6 +37,7 @@
             android:textSize="16sp"
             android:paddingTop="@dimen/list_item_padding_top"
             android:paddingBottom="@dimen/list_item_padding_bottom"
+            android:paddingRight="@dimen/content_area_separation"
             android:ellipsize="end" />
     </LinearLayout>
 </LinearLayout>
