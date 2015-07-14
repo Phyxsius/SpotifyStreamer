@@ -48,8 +48,7 @@
                 android:paddingRight="@dimen/tablet_keyline_screen_edge"
                 android:paddingBottom="@dimen/tablet_keyline_screen_edge"
                 android:paddingTop="@dimen/zero"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
-                android:background="@color/accent" />
+                android:layout_marginBottom="@dimen/player_seekbar_margin_offset" />
         </LinearLayout>
 
         <LinearLayout
