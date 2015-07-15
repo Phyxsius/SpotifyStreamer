@@ -29,6 +29,8 @@ import retrofit.RetrofitError;
 import us.phyxsi.spotifystreamer.object.ParcableArtist;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 import us.phyxsi.spotifystreamer.object.PlayerHelper;
+import us.phyxsi.spotifystreamer.player.PlayerActivity;
+import us.phyxsi.spotifystreamer.player.PlayerFragment;
 
 /**
  * A placeholder fragment containing a simple view.

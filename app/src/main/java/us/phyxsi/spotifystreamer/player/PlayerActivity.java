@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.player;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import us.phyxsi.spotifystreamer.R;
+import us.phyxsi.spotifystreamer.SettingsActivity;
 import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
 public class PlayerActivity extends AppCompatActivity {
@@ -27,7 +29,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            mPlayerHelper = (PlayerHelper) getIntent().getParcelableExtra(PlayerFragment.PLAYER_HELPER);
+            mPlayerHelper = getIntent().getParcelableExtra(PlayerFragment.PLAYER_HELPER);
 
             arguments.putParcelable(PlayerFragment.PLAYER_HELPER, mPlayerHelper);
 
@@ -49,6 +51,8 @@ public class PlayerActivity extends AppCompatActivity {
             }
         }
     }
+
+
 
 
     @Override

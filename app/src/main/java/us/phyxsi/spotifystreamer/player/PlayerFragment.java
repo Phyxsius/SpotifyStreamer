@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.player;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -31,12 +31,13 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
-public class PlayerFragment extends DialogFragment {
+public class PlayerFragment extends DialogFragment implements PlayerService.Callback {
 
-    static final String PLAYER_HELPER = "PLAYER_HELPER";
+    public static final String PLAYER_HELPER = "PLAYER_HELPER";
 
     private PlayerService mPlayerService;
     private PlayerHelper mPlayerHelper;
@@ -44,6 +45,7 @@ public class PlayerFragment extends DialogFragment {
     private Intent serviceIntent;
     private boolean serviceBound = false;
     private boolean isPlaying = false;
+    private boolean viewsAreCreated = false;
 
     // Views
     private Toolbar toolbar;
@@ -59,6 +61,8 @@ public class PlayerFragment extends DialogFragment {
     public PlayerFragment() {
     }
 
+
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -73,15 +77,7 @@ public class PlayerFragment extends DialogFragment {
 
         setupViews();
 
-//        MediaPlayer mediaPlayer = new MediaPlayer();
-//        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//        try {
-//            mediaPlayer.setDataSource(mPlayerHelper.getCurrentTrack().previewUrl);
-//            mediaPlayer.prepare();
-//            mediaPlayer.start();
-//        } catch (IOException e) {
-//
-//        }
+        viewsAreCreated = true;
     }
 
     @Nullable
@@ -95,6 +91,7 @@ public class PlayerFragment extends DialogFragment {
         if (arguments != null) {
             mPlayerHelper = arguments.getParcelable(PlayerFragment.PLAYER_HELPER);
 
+            assert mPlayerHelper != null;
             mTrack = mPlayerHelper.getCurrentTrack();
 
             setViewsInfo(mTrack);
@@ -120,7 +117,25 @@ public class PlayerFragment extends DialogFragment {
         super.onDestroy();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
+        outState.putParcelable(PLAYER_HELPER, mPlayerHelper);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            this.mPlayerHelper = savedInstanceState.getParcelable(PLAYER_HELPER);
+
+            if (this.mPlayerHelper != null) {
+                setViewsInfo(mPlayerHelper.getCurrentTrack());
+            }
+        }
+    }
 
     private void initializeViews(View view) {
         toolbar = (Toolbar) view.findViewById(R.id.actionbar);
@@ -148,6 +163,8 @@ public class PlayerFragment extends DialogFragment {
                 unbindService();
             }
         });
+        // Set toolbar title
+        toolbar.setTitle(getString(R.string.now_playing));
 
         // Player controls
         prevButton.setOnClickListener(new View.OnClickListener() {
@@ -174,87 +191,94 @@ public class PlayerFragment extends DialogFragment {
 
         // Seekbar
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            private boolean userInitiated = false;
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // TODO: Change the progress text
-                if (mPlayerService != null) mPlayerService.seekTo(progress);
+                seekTo(progress, userInitiated);
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                userInitiated = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                userInitiated = false;
             }
         });
     }
 
     private void setViewsInfo(ParcableTrack track) {
-        // Set toolbar title
-        toolbar.setTitle(getString(R.string.now_playing));
+        if (viewsAreCreated) {
+            // Set the album image
+            DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+            int imageDimension = Math.round(86 * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
 
-        // Set the album image
-        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        int imageDimension = Math.round(86 * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+            if (!TextUtils.isEmpty(track.imageUrl)) {
+                Picasso.with(getActivity())
+                        .load(track.imageUrl)
+                        .into(albumImage);
+            }
 
-        if (!TextUtils.isEmpty(mTrack.imageUrl)) {
-            Picasso.with(getActivity())
-                    .load(mTrack.imageUrl)
-                    .into(albumImage);
-        }
+            // Artist and track details
+            trackTitle.setText(track.name);
+            artistName.setText(track.artist);
+            seekBar.setMax(track.getDurationInMilli());
 
-        // Artist and track details
-        trackTitle.setText(mTrack.name);
-        artistName.setText(mTrack.artist);
-        seekBar.setMax(mTrack.getDurationInMilli());
+            // Change widget colors based on album art
+            Picasso.with(getActivity()).load(track.imageUrl).into(new Target() {
+                @Override
+                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                    Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+                        @Override
+                        public void onGenerated(Palette palette) {
+                            Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
+                            Palette.Swatch mutedSwatch = palette.getMutedSwatch();
+                            Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
 
-        // Change widget colors based on album art
-        Picasso.with(getActivity()).load(mTrack.imageUrl).into(new Target() {
-            @Override
-            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-                    @Override
-                    public void onGenerated(Palette palette) {
-                        Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
-                        Palette.Swatch mutedSwatch = palette.getMutedSwatch();
-                        Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
+                            trackTitle.setBackgroundColor(getSwatchColor(mutedSwatch));
+                            trackTitle.setTextColor(mutedSwatch != null ?
+                                    mutedSwatch.getBodyTextColor() : 0x000000);
+                            artistName.setBackgroundColor(getSwatchColor(mutedSwatch));
+                            artistName.setTextColor(mutedSwatch != null ?
+                                    mutedSwatch.getTitleTextColor() : 0x000000);
 
-                        trackTitle.setBackgroundColor(getSwatchColor(mutedSwatch));
-                        trackTitle.setTextColor(mutedSwatch != null ?
-                                mutedSwatch.getBodyTextColor() : 0x000000);
-                        artistName.setBackgroundColor(getSwatchColor(mutedSwatch));
-                        artistName.setTextColor(mutedSwatch != null ?
-                                mutedSwatch.getTitleTextColor() : 0x000000);
-
-                        playerControls.setBackgroundColor(getSwatchColor(darkMutedSwatch));
+                            playerControls.setBackgroundColor(getSwatchColor(darkMutedSwatch));
 
 
-                        // Set statusbar and seekbar color on Lollipop+
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            seekBar.getThumb().setTint(getSwatchColor(vibrantSwatch));
-                            getActivity().getWindow().setStatusBarColor(getSwatchColor(mutedSwatch));
+                            // Set statusbar and seekbar color on Lollipop+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                seekBar.getThumb().setTint(getSwatchColor(vibrantSwatch));
+                                getActivity().getWindow().setStatusBarColor(getSwatchColor(mutedSwatch));
+                            }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
+                @Override
+                public void onBitmapFailed(Drawable errorDrawable) {
 
-            }
+                }
 
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                @Override
+                public void onPrepareLoad(Drawable placeHolderDrawable) {
 
-            }
+                }
 
-            private int getSwatchColor(Palette.Swatch swatch) {
-                return swatch != null ? swatch.getRgb() : 0x000000;
-            }
-        });
+                private int getSwatchColor(Palette.Swatch swatch) {
+                    return swatch != null ? swatch.getRgb() : 0x000000;
+                }
+            });
+        }
+    }
+
+    private void setProgress(int position) { seekBar.setProgress(position); }
+
+    public void seekTo(int position, boolean userInitiated) {
+        // TODO: Set time text
+        if (userInitiated && mPlayerService != null) mPlayerService.seekTo(position);
     }
 
     private ServiceConnection streamingConnection = new ServiceConnection() {
@@ -274,6 +298,8 @@ public class PlayerFragment extends DialogFragment {
 
             setViewsInfo(mPlayerService.getCurrentTrack());
 
+            mPlayerService.registerCallback(PlayerFragment.this);
+
             serviceBound = true;
         }
 
@@ -285,9 +311,44 @@ public class PlayerFragment extends DialogFragment {
 
     public void unbindService() {
         if (mPlayerService != null) {
-//            mPlayerService.unregisterCallback(null);
+            mPlayerService.unregisterCallback(null);
             getActivity().unbindService(streamingConnection);
             mPlayerService = null;
+        }
+    }
+
+    @Override
+    public void onProgressChange(int progress) {
+        setProgress(progress);
+    }
+
+    @Override
+    public void onTrackChanged(ParcableTrack track) {
+        setViewsInfo(track);
+    }
+
+    @Override
+    public void onPlaybackStopped() {
+        playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_48dp);
+        isPlaying = false;
+    }
+
+    @Override
+    public void onPlayerStateChanged(@SpotifyMediaPlayer.State int state) {
+        if (!viewsAreCreated) return;
+
+        switch (state) {
+            case SpotifyMediaPlayer.STATE_STARTED:
+                playPauseButton.setImageResource(R.drawable.ic_pause_white_48dp);
+                break;
+            case SpotifyMediaPlayer.STATE_PAUSED:
+                playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_48dp);
+                break;
+            case SpotifyMediaPlayer.STATE_STOPPED:
+                playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_48dp);
+                seekTo(0, false);
+                break;
+
         }
     }
 }

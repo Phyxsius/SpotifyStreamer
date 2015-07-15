@@ -5,9 +5,6 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 
-/**
- * Created by andy on 7/9/15.
- */
 public class PlayerHelper implements Parcelable {
 
     private ParcableArtist artist;
@@ -49,23 +46,25 @@ public class PlayerHelper implements Parcelable {
     }
 
     private int getPreviousPosition() {
-        int prev = this.currentPosition--;
+        int prev = this.currentPosition - 1;
 
         return (prev < 0) ? this.tracks.size() - 1 : prev;
     }
 
     private int getNextPosition() {
-        int next = this.currentPosition++;
+        int next = this.currentPosition + 1;
 
         return (next >= this.tracks.size()) ? 0 : next;
     }
 
     public ParcableTrack getPreviousTrack() {
-        return getTrackAt(getPreviousPosition());
+        this.currentPosition = getPreviousPosition();
+        return getTrackAt(this.currentPosition);
     }
 
     public ParcableTrack getNextTrack() {
-        return getTrackAt(getNextPosition());
+        this.currentPosition = getNextPosition();
+        return getTrackAt(this.currentPosition);
     }
 
     // Constructor

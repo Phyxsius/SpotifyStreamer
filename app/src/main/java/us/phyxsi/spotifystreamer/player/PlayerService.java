@@ -1,30 +1,51 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.player;
 
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
-public class PlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+public class PlayerService extends Service implements MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnErrorListener,
+        SpotifyMediaPlayer.OnStateChangeListener {
     private final String LOG_TAG = PlayerService.class.getSimpleName();
     public static final String ACTION_PLAY = "PLAY";
     public static final String EXTRA_SESSION = "SESSION";
 
     private final IBinder streamingBinder = new StreamingBinder();
 
-    private MediaPlayer mMediaPlayer;
+    private SpotifyMediaPlayer mMediaPlayer;
     private PlayerHelper helper;
-
+    private List<Callback> callbacks;
+    private Handler mHandler = new Handler();
     private boolean playWhenPrepared = false;
+    private boolean watchProgressUpdate = false;
+
+    private Runnable progressUpdate = new Runnable() {
+        @Override
+        public void run() {
+            if (callbacks != null && mMediaPlayer != null) {
+                for (Callback callback : callbacks) {
+                    callback.onProgressChange(mMediaPlayer.getCurrentPosition());
+                }
+            }
+
+            if (watchProgressUpdate) mHandler.postDelayed(progressUpdate, 16);
+        }
+    };
 
     public PlayerHelper getHelper() {
         return helper;
@@ -64,13 +85,19 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     private void initMusicPlayer() {
         if (mMediaPlayer == null) {
-            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer = new SpotifyMediaPlayer();
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.setOnErrorListener(this);
+            mMediaPlayer.setOnPreparedListener(this);
+            mMediaPlayer.setOnStateChangeListener(this);
             mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         }
+    }
+
+    private void setWatchProgress(boolean watchProgress) {
+        watchProgressUpdate = watchProgress;
+        if (watchProgress) progressUpdate.run();
     }
 
     private void stopAndRelease() {
@@ -100,7 +127,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         String action = intent.getAction();
 
         if (ACTION_PLAY.equals(action)) {
-            releaseMediaPlayer();
+            resetMediaPlayer();
 
             setHelper((PlayerHelper) intent.getParcelableExtra(EXTRA_SESSION));
         }
@@ -116,24 +143,42 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     public void play() {
-        if (mMediaPlayer.isPlaying()) return;
+        if (mMediaPlayer.getCurrentState() == SpotifyMediaPlayer.STATE_STARTED) return;
+
+        if (mMediaPlayer.getCurrentState() == SpotifyMediaPlayer.STATE_PREPARING) {
+            playWhenPrepared = true;
+            return;
+        }
 
         playWhenPrepared = true;
         mMediaPlayer.start();
+        setWatchProgress(true);
     }
 
     public void pause() {
-        if (!mMediaPlayer.isPlaying()) return;
+        if (mMediaPlayer.getCurrentState() == SpotifyMediaPlayer.STATE_PAUSED) return;
+
+        if (mMediaPlayer.getCurrentState() == SpotifyMediaPlayer.STATE_PREPARING) {
+            playWhenPrepared = false;
+            return;
+        }
 
         playWhenPrepared = false;
         mMediaPlayer.pause();
+        setWatchProgress(false);
     }
 
     private void stop() {
-        if (!mMediaPlayer.isPlaying()) return;
+        if (mMediaPlayer.getCurrentState() == SpotifyMediaPlayer.STATE_STOPPED) return;
+
+        if (mMediaPlayer.getCurrentState() == SpotifyMediaPlayer.STATE_PREPARING) {
+            playWhenPrepared = false;
+            return;
+        }
 
         playWhenPrepared = false;
         mMediaPlayer.stop();
+        setWatchProgress(false);
     }
 
     public void togglePlay() {
@@ -177,12 +222,24 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     private void playNext() {
         ParcableTrack track = helper.getNextTrack();
 
+        if (callbacks != null) {
+            for (Callback callback : callbacks) {
+                callback.onTrackChanged(track);
+            }
+        }
+
         resetMediaPlayer();
         prepareToPlay(track);
     }
 
     private void playPrevious() {
         ParcableTrack track = helper.getPreviousTrack();
+
+        if (callbacks != null) {
+            for (Callback callback : callbacks) {
+                callback.onTrackChanged(track);
+            }
+        }
 
         resetMediaPlayer();
         prepareToPlay(track);
@@ -193,6 +250,11 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         if (canPlayNext()) {
             playNext();
         } else {
+            if (callbacks != null) {
+                for (Callback callback : callbacks) {
+                    callback.onPlaybackStopped();
+                }
+            }
             stopAndRelease();
         }
     }
@@ -200,6 +262,8 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
         Log.e(LOG_TAG, what + ", " + extra);
+
+        mMediaPlayer.reset();
         mMediaPlayer.release();
 
         return false;
@@ -210,10 +274,23 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         if (playWhenPrepared) play();
     }
 
+    @Override
+    public void onStateChanged(@SpotifyMediaPlayer.State int state) {
+        if (callbacks != null) {
+            for (Callback callback : callbacks) {
+                callback.onPlayerStateChanged(state);
+            }
+        }
+
+        if (state == SpotifyMediaPlayer.STATE_STARTED || state == SpotifyMediaPlayer.STATE_PAUSED) {
+            // TODO: Notifications
+        }
+    }
+
     private void resetMediaPlayer() {
         if (mMediaPlayer == null) {
             initMusicPlayer();
-        } else {
+        } else if (mMediaPlayer.getCurrentState() != SpotifyMediaPlayer.STATE_IDLE) {
             mMediaPlayer.reset();
         }
     }
@@ -230,5 +307,27 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     public class StreamingBinder extends Binder {
         PlayerService getService() { return PlayerService.this; }
+    }
+
+    public void registerCallback(Callback callback) {
+        if (callbacks == null) {
+            callbacks = new ArrayList<>();
+        }
+
+        callbacks.add(callback);
+    }
+
+    public void unregisterCallback(Callback callback) {
+        if (callbacks != null) callbacks.remove(callback);
+    }
+
+    public interface Callback {
+        void onProgressChange(int progress);
+
+        void onTrackChanged(ParcableTrack track);
+
+        void onPlaybackStopped();
+
+        void onPlayerStateChanged(@SpotifyMediaPlayer.State int state);
     }
 }
