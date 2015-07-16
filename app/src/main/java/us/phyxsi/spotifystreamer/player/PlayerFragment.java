@@ -60,9 +60,7 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
 
     public PlayerFragment() {
     }
-
-
-
+    
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -115,6 +113,12 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
     public void onDestroy() {
         unbindService();
         super.onDestroy();
+    }
+
+    @Override
+    public void onDestroyView() {
+        viewsAreCreated = false;
+        super.onDestroyView();
     }
 
     @Override

@@ -20,5 +20,6 @@
 
     <!-- Player Activity & Fragment -->
     <string name="now_playing">Now Playing</string>
+    <string name="album_art">Album art</string>
 
 </resources>

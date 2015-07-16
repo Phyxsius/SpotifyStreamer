@@ -46,8 +46,11 @@ public class PlayerActivity extends AppCompatActivity {
                 transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
                 // To make it fullscreen, use the 'content' root view as the container
                 // for the fragment, which is always the root view for the activity
-                transaction.add(R.id.player_fragment, fragment)
-                        .addToBackStack(null).commit();
+                fragmentManager.beginTransaction()
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                        .replace(R.id.player_container, fragment)
+                        .addToBackStack(null)
+                        .commit();
             }
         }
     }

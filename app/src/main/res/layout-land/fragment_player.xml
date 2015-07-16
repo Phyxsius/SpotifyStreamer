@@ -15,7 +15,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/zero"
+            android:layout_height="0dp"
             android:orientation="horizontal"
             android:layout_weight="1">
 
@@ -25,7 +25,8 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:scaleType="centerCrop"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:contentDescription="@string/album_art" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -65,7 +66,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_gravity="bottom">
+            android:layout_gravity="bottom"
+            android:layout_marginTop="@dimen/player_seekbar_margin_offset">
             <SeekBar
                 android:id="@+id/player_seekbar"
                 android:layout_width="match_parent"
@@ -74,7 +76,8 @@
                 android:elevation="9dp"
                 android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
                 android:padding="@dimen/zero"
-                android:progressBackgroundTint="@android:color/transparent" />
+                android:progressBackgroundTint="@android:color/transparent"
+                android:progress="50" />
 
             <LinearLayout
                 android:id="@+id/player_control_layout"

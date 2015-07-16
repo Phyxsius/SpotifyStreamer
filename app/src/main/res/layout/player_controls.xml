@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/player_control_layout"
-    android:background="@color/primary"
+    android:background="@color/accent"
     android:padding="@dimen/player_playback_controls_padding">
 
     <ImageView

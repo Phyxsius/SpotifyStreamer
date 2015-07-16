@@ -108,6 +108,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     private void releaseMediaPlayer() {
         if (mMediaPlayer != null) {
+            mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
         }

@@ -17,10 +17,12 @@
         <ImageView
             android:id="@+id/player_album_image"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             android:layout_gravity="center"
             android:scaleType="centerCrop"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:contentDescription="@string/album_art"
+            android:background="@color/accent" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -36,7 +38,8 @@
                 android:paddingLeft="@dimen/tablet_keyline_screen_edge"
                 android:paddingTop="@dimen/tablet_keyline_screen_edge"
                 android:paddingRight="@dimen/tablet_keyline_screen_edge"
-                android:paddingBottom="@dimen/content_area_separation" />
+                android:paddingBottom="@dimen/content_area_separation"
+                android:gravity="left|bottom" />
 
             <TextView
                 android:id="@+id/player_artist_name"
@@ -48,14 +51,15 @@
                 android:paddingRight="@dimen/tablet_keyline_screen_edge"
                 android:paddingBottom="@dimen/tablet_keyline_screen_edge"
                 android:paddingTop="@dimen/zero"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset" />
+                android:gravity="top|left" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@android:color/transparent">
+            android:background="@android:color/transparent"
+            android:layout_marginTop="@dimen/player_seekbar_margin_offset">
 
             <SeekBar
                 android:id="@+id/player_seekbar"
@@ -63,11 +67,10 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:progress="1"
-                android:max="10"
                 android:elevation="9dp"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
                 android:padding="@dimen/zero"
-                android:progressBackgroundTint="@android:color/transparent" />
+                android:progressBackgroundTint="@android:color/transparent"
+                android:layout_marginBottom="@dimen/player_seekbar_margin_offset" />
 
             <include
                 layout="@layout/player_controls"
