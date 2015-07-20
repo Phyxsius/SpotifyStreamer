@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="us.phyxsi.spotifystreamer" >
 
     <!-- This permission is necessary in order to perform network access. -->
@@ -20,7 +21,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.SEARCH" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
@@ -37,12 +37,6 @@
                 android:value="us.phyxsi.spotifystreamer.MainActivity" />
         </activity>
         <activity
-            android:name=".player.PlayerActivity"
-            android:label="@string/now_playing"
-            android:parentActivityName=".TracksActivity"
-            android:theme="@style/PlayerTheme" >
-        </activity>
-        <activity
             android:name=".SettingsActivity"
             android:label="@string/action_settings"
             android:parentActivityName=".MainActivity"
@@ -52,10 +46,24 @@
                 android:value="us.phyxsi.spotifystreamer.MainActivity" />
         </activity>
 
+        <activity
+            android:name=".player.PlayerActivity"
+            android:label="@string/now_playing"
+            android:parentActivityName=".TracksActivity"
+            android:theme="@style/PlayerTheme"
+            android:launchMode="singleTop">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".TracksActivity"/>
+        </activity>
+
         <service
             android:name=".player.PlayerService"
-            android:enabled="true"
-            android:exported="true" >
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
         </service>
     </application>
 

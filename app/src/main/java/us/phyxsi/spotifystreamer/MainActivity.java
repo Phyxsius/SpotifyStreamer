@@ -3,19 +3,17 @@ package us.phyxsi.spotifystreamer;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SearchView;
 import android.widget.Toast;
 
 import us.phyxsi.spotifystreamer.object.ParcableArtist;
+import us.phyxsi.spotifystreamer.utils.NetworkHelper;
 
-public class MainActivity extends AppCompatActivity implements ArtistFragment.Callback {
+public class MainActivity extends BaseActivity implements ArtistFragment.Callback {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String TRACKSFRAGMENT_TAG = "TFTAG";
@@ -53,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements ArtistFragment.Ca
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if (isOnline()) {
+                if (NetworkHelper.isOnline(getApplicationContext())) {
                     artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
                     artistFragment.fetchArtist(query);
 
@@ -112,13 +110,5 @@ public class MainActivity extends AppCompatActivity implements ArtistFragment.Ca
 
             startActivity(intent);
         }
-    }
-
-
-    public boolean isOnline() {
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnected());
     }
 }
