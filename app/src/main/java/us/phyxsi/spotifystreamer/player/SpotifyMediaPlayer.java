@@ -104,48 +104,72 @@ public class SpotifyMediaPlayer extends MediaPlayer implements MediaPlayer.OnPre
     // Media control overrides
     @Override
     public void start() throws IllegalStateException {
-        if (canChangeState(STATE_STARTED)) {
-            super.start();
-            setCurrentState(STATE_STARTED);
+        try {
+            if (canChangeState(STATE_STARTED)) {
+                super.start();
+                setCurrentState(STATE_STARTED);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void pause() throws IllegalStateException {
-        if (canChangeState(STATE_PAUSED)) {
-            super.pause();
-            setCurrentState(STATE_PAUSED);
+        try {
+            if (canChangeState(STATE_PAUSED)) {
+                super.pause();
+                setCurrentState(STATE_PAUSED);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void stop() throws IllegalStateException {
-        if (canChangeState(STATE_STOPPED)) {
-            super.stop();
-            setCurrentState(STATE_STOPPED);
+        try {
+            if (canChangeState(STATE_STOPPED)) {
+                super.stop();
+                setCurrentState(STATE_STOPPED);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void seekTo(int msec) throws IllegalStateException {
-        if (canChangeState(this.currentState)) {
-            super.seekTo(msec);
+        try {
+            if (canChangeState(this.currentState)) {
+                super.seekTo(msec);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void prepare() throws IOException, IllegalStateException {
-        if (canChangeState(STATE_PREPARED)) {
-            super.prepare();
-            setCurrentState(STATE_PREPARED);
+        try {
+            if (canChangeState(STATE_PREPARED)) {
+                super.prepare();
+                setCurrentState(STATE_PREPARED);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void prepareAsync() throws IllegalStateException {
-        if (canChangeState(STATE_PREPARING)) {
-            super.prepareAsync();
-            setCurrentState(STATE_PREPARING);
+        try {
+            if (canChangeState(STATE_PREPARING)) {
+                super.prepareAsync();
+                setCurrentState(STATE_PREPARING);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
         }
     }
 
@@ -191,24 +215,24 @@ public class SpotifyMediaPlayer extends MediaPlayer implements MediaPlayer.OnPre
 
     @Override
     public void setOnCompletionListener(OnCompletionListener listener) {
-        onCompletionListener = listener;
+        this.onCompletionListener = listener;
         super.setOnCompletionListener(this);
     }
 
     @Override
     public void setOnErrorListener(OnErrorListener listener) {
-        onErrorListener = listener;
+        this.onErrorListener = listener;
         super.setOnErrorListener(this);
     }
 
     @Override
     public void setOnPreparedListener(OnPreparedListener listener) {
-        onPreparedListener = listener;
+        this.onPreparedListener = listener;
         super.setOnPreparedListener(this);
     }
 
     public void setOnStateChangeListener(OnStateChangeListener listener) {
-        onStateChangeListener = listener;
+        this.onStateChangeListener = listener;
     }
 
     // Data source overrides

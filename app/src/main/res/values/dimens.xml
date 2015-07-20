@@ -23,4 +23,8 @@
     <dimen name="list_item_icon_padding">16dp</dimen>
     <dimen name="list_item_icon_height">86dp</dimen>
     <dimen name="list_item_icon_width">92dp</dimen>
+
+    <!-- Margins for full screen activity-->
+    <dimen name="text_view_margin">16dp</dimen>
+    <dimen name="end_text_margin">16dp</dimen>
 </resources>

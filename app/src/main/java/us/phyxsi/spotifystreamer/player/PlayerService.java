@@ -22,12 +22,12 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         MediaPlayer.OnErrorListener,
         SpotifyMediaPlayer.OnStateChangeListener {
     private final String LOG_TAG = PlayerService.class.getSimpleName();
-    public static final String ACTION_PLAY = "PLAY";
+    public static final String ACTION_PLAY = "us.phyxsi.spotifystreamer.player.PLAY";
     public static final String EXTRA_SESSION = "SESSION";
 
     private final IBinder streamingBinder = new StreamingBinder();
 
-    private SpotifyMediaPlayer mMediaPlayer;
+    private SpotifyMediaPlayer mMediaPlayer = null;
     private PlayerHelper helper;
     private List<Callback> callbacks;
     private Handler mHandler = new Handler();
@@ -43,7 +43,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 }
             }
 
-            if (watchProgressUpdate) mHandler.postDelayed(progressUpdate, 16);
+            if (watchProgressUpdate) mHandler.postDelayed(progressUpdate, 1000);
         }
     };
 
@@ -108,7 +108,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     private void releaseMediaPlayer() {
         if (mMediaPlayer != null) {
-            mMediaPlayer.reset();
+//            mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
         }
@@ -248,13 +248,10 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        if (canPlayNext()) {
-            playNext();
-        } else {
+        if (canPlayNext()) playNext();
+        else {
             if (callbacks != null) {
-                for (Callback callback : callbacks) {
-                    callback.onPlaybackStopped();
-                }
+                for (Callback callback : callbacks) callback.onPlaybackStopped();
             }
             stopAndRelease();
         }
@@ -265,7 +262,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         Log.e(LOG_TAG, what + ", " + extra);
 
         mMediaPlayer.reset();
-        mMediaPlayer.release();
+//        mMediaPlayer.release();
 
         return false;
     }
@@ -311,9 +308,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     }
 
     public void registerCallback(Callback callback) {
-        if (callbacks == null) {
-            callbacks = new ArrayList<>();
-        }
+        if (callbacks == null) callbacks = new ArrayList<>();
 
         callbacks.add(callback);
     }

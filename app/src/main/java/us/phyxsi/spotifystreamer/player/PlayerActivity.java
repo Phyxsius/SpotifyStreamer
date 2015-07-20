@@ -16,7 +16,9 @@ import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
 public class PlayerActivity extends AppCompatActivity {
 
-    private PlayerHelper mPlayerHelper;
+    public static final String PLAYER_HELPER = "PLAYER_HELPER";
+
+    private static PlayerHelper mPlayerHelper;
     boolean mIsLargeLayout;
 
     @Override
@@ -29,9 +31,9 @@ public class PlayerActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            mPlayerHelper = getIntent().getParcelableExtra(PlayerFragment.PLAYER_HELPER);
+            mPlayerHelper = getIntent().getParcelableExtra(PLAYER_HELPER);
 
-            arguments.putParcelable(PlayerFragment.PLAYER_HELPER, mPlayerHelper);
+            arguments.putParcelable(PLAYER_HELPER, mPlayerHelper);
 
             PlayerFragment fragment = new PlayerFragment();
             fragment.setArguments(arguments);
@@ -82,6 +84,15 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onSupportNavigateUp() {
+        if (!super.onSupportNavigateUp()) {
+            finish();
+        }
+
+        return super.onSupportNavigateUp();
+    }
+
+    @Override
     public void setSupportActionBar(Toolbar toolbar) {
         super.setSupportActionBar(toolbar);
 
@@ -89,6 +100,26 @@ public class PlayerActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setHomeAsUpIndicator(R.drawable.abc_ic_clear_mtrl_alpha);
             actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelable(PLAYER_HELPER, mPlayerHelper);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(PLAYER_HELPER)) {
+            mPlayerHelper = savedInstanceState.getParcelable(PLAYER_HELPER);
+
+            if (mPlayerHelper != null) {
+
+            }
         }
     }
 }

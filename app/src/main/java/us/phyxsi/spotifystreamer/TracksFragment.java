@@ -30,7 +30,6 @@ import us.phyxsi.spotifystreamer.object.ParcableArtist;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 import us.phyxsi.spotifystreamer.object.PlayerHelper;
 import us.phyxsi.spotifystreamer.player.PlayerActivity;
-import us.phyxsi.spotifystreamer.player.PlayerFragment;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -38,12 +37,14 @@ import us.phyxsi.spotifystreamer.player.PlayerFragment;
 public class TracksFragment extends Fragment implements ListView.OnItemClickListener {
     private final String LOG_TAG = TracksFragment.class.getSimpleName();
     private final String TRACK_LIST = "TRACK_LIST";
+    private final String PLAYER_HELPER = "PLAYER_HELPER";
     static final String ARTIST = "ARTIST";
 
     private ArrayAdapter<ParcableTrack> mTracksAdapter;
     private AbsListView mListView;
     private ArrayList<ParcableTrack> mTracks;
     private ParcableArtist mArtist;
+    private PlayerHelper mPlayerHelper;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -82,8 +83,10 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
 
         if (savedInstanceState != null) {
             mTracks = (ArrayList<ParcableTrack>) savedInstanceState.get(TRACK_LIST);
+            mPlayerHelper = (PlayerHelper) savedInstanceState.get(PLAYER_HELPER);
         } else {
             mTracks = new ArrayList<>();
+            mPlayerHelper = new PlayerHelper(mArtist, mTracks, 0);
 
             // No previous results found so we can fetch the tracks
             // for the first time for this artist
@@ -105,6 +108,7 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(TRACK_LIST, mTracks);
+        outState.putParcelable(PLAYER_HELPER, mPlayerHelper);
     }
 
     @Override
@@ -118,9 +122,9 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         ParcableTrack track = (ParcableTrack) parent.getItemAtPosition(position);
 
         if (track != null) {
+            mPlayerHelper.setCurrentPosition(position);
             Intent intent = new Intent(getActivity(), PlayerActivity.class)
-                    .putExtra(PlayerFragment.PLAYER_HELPER,
-                            new PlayerHelper(mArtist, mTracks, position));
+                    .putExtra(PlayerActivity.PLAYER_HELPER, mPlayerHelper);
 
             startActivity(intent);
         }

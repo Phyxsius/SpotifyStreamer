@@ -11,6 +11,23 @@ public class PlayerHelper implements Parcelable {
     private ArrayList<ParcableTrack> tracks;
     private int startingPosition;
     private int currentPosition;
+    private String sessionToken;
+
+    // Constructor
+    public PlayerHelper(ParcableArtist artist, ArrayList<ParcableTrack> tracks, int startingPosition) {
+        this.artist = artist;
+        this.tracks = tracks;
+        this.startingPosition = this.currentPosition = startingPosition;
+        this.sessionToken = (artist == null ? "null" : artist.id) + "_" + startingPosition;
+    }
+
+    protected PlayerHelper(Parcel in) {
+        this.artist = in.readParcelable(ParcableArtist.class.getClassLoader());
+        this.tracks = in.createTypedArrayList(ParcableTrack.CREATOR);
+        this.startingPosition = in.readInt();
+        this.currentPosition = in.readInt();
+        this.sessionToken = in.readString();
+    }
 
     // Getters
     public int getStartingPosition() {
@@ -19,6 +36,10 @@ public class PlayerHelper implements Parcelable {
 
     public ParcableArtist getArtist() {
         return artist;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
     }
 
     public ArrayList<ParcableTrack> getTracks() {
@@ -67,11 +88,9 @@ public class PlayerHelper implements Parcelable {
         return getTrackAt(this.currentPosition);
     }
 
-    // Constructor
-    public PlayerHelper(ParcableArtist artist, ArrayList<ParcableTrack> tracks, int startingPosition) {
-        this.artist = artist;
-        this.tracks = tracks;
-        this.startingPosition = this.currentPosition = startingPosition;
+    //Setters
+    public void setCurrentPosition(int currentPosition) {
+        this.currentPosition = currentPosition;
     }
 
     // Parcable methods
@@ -86,13 +105,16 @@ public class PlayerHelper implements Parcelable {
         dest.writeTypedList(tracks);
         dest.writeInt(this.startingPosition);
         dest.writeInt(this.currentPosition);
+        dest.writeString(this.sessionToken);
     }
 
-    protected PlayerHelper(Parcel in) {
-        this.artist = in.readParcelable(ParcableArtist.class.getClassLoader());
-        this.tracks = in.createTypedArrayList(ParcableTrack.CREATOR);
-        this.startingPosition = in.readInt();
-        this.currentPosition = in.readInt();
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof PlayerHelper) {
+            return sessionToken.equals(((PlayerHelper) o). getSessionToken());
+        }
+
+        return super.equals(o);
     }
 
     public static final Creator<PlayerHelper> CREATOR = new Creator<PlayerHelper>() {

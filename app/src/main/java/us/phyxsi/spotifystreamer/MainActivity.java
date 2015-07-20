@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements ArtistFragment.Ca
 
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.search));
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.search));
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements ArtistFragment.Ca
                 if (isOnline()) {
                     artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
                     artistFragment.fetchArtist(query);
+
+                    searchView.clearFocus();
                 } else {
                     Toast.makeText(getApplicationContext(),
                             getString(R.string.network_offline),

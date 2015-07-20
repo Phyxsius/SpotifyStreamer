@@ -37,8 +37,6 @@ import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
 public class PlayerFragment extends DialogFragment implements PlayerService.Callback {
 
-    public static final String PLAYER_HELPER = "PLAYER_HELPER";
-
     private PlayerService mPlayerService;
     private PlayerHelper mPlayerHelper;
     private ParcableTrack mTrack;
@@ -87,7 +85,7 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
 
         Bundle arguments = getArguments();
         if (arguments != null) {
-            mPlayerHelper = arguments.getParcelable(PlayerFragment.PLAYER_HELPER);
+            mPlayerHelper = arguments.getParcelable(PlayerActivity.PLAYER_HELPER);
 
             assert mPlayerHelper != null;
             mTrack = mPlayerHelper.getCurrentTrack();
@@ -125,7 +123,7 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putParcelable(PLAYER_HELPER, mPlayerHelper);
+        outState.putParcelable(PlayerActivity.PLAYER_HELPER, mPlayerHelper);
     }
 
     @Override
@@ -133,7 +131,7 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
         super.onActivityCreated(savedInstanceState);
 
         if (savedInstanceState != null) {
-            this.mPlayerHelper = savedInstanceState.getParcelable(PLAYER_HELPER);
+            this.mPlayerHelper = savedInstanceState.getParcelable(PlayerActivity.PLAYER_HELPER);
 
             if (this.mPlayerHelper != null) {
                 setViewsInfo(mPlayerHelper.getCurrentTrack());
