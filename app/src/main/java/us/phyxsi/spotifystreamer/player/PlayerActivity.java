@@ -2,11 +2,9 @@ package us.phyxsi.spotifystreamer.player;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -14,8 +12,7 @@ import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.SettingsActivity;
 import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
-public class PlayerActivity extends AppCompatActivity {
-
+public class PlayerActivity extends FragmentActivity {
     public static final String PLAYER_HELPER = "PLAYER_HELPER";
 
     private static PlayerHelper mPlayerHelper;
@@ -83,25 +80,16 @@ public class PlayerActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        if (!super.onSupportNavigateUp()) {
-            finish();
-        }
-
-        return super.onSupportNavigateUp();
-    }
-
-    @Override
-    public void setSupportActionBar(Toolbar toolbar) {
-        super.setSupportActionBar(toolbar);
-
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setHomeAsUpIndicator(R.drawable.abc_ic_clear_mtrl_alpha);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
-    }
+//    @Override
+//    public void setSupportActionBar(Toolbar toolbar) {
+//        super.setSupportActionBar(toolbar);
+//
+//        ActionBar actionBar = getSupportActionBar();
+//        if (actionBar != null) {
+//            actionBar.setHomeAsUpIndicator(R.drawable.abc_ic_clear_mtrl_alpha);
+//            actionBar.setDisplayHomeAsUpEnabled(true);
+//        }
+//    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

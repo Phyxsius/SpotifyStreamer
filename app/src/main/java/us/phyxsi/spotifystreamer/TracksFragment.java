@@ -122,6 +122,8 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         ParcableTrack track = (ParcableTrack) parent.getItemAtPosition(position);
 
         if (track != null) {
+            getActivity().getMediaController().getTransportControls().playFromMediaId(track.getMediaId(), null);
+
             mPlayerHelper.setCurrentPosition(position);
             Intent intent = new Intent(getActivity(), PlayerActivity.class)
                     .putExtra(PlayerActivity.PLAYER_HELPER, mPlayerHelper);

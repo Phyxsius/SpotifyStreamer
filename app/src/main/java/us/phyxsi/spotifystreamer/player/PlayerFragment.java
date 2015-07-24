@@ -1,16 +1,21 @@
 package us.phyxsi.spotifystreamer.player;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.ComponentName;
-import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.media.MediaDescription;
+import android.media.MediaMetadata;
+import android.media.browse.MediaBrowser;
+import android.media.session.MediaController;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -19,6 +24,7 @@ import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,13 +37,43 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import us.phyxsi.spotifystreamer.MusicService;
 import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 import us.phyxsi.spotifystreamer.object.PlayerHelper;
 
-public class PlayerFragment extends DialogFragment implements PlayerService.Callback {
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
 
-    private PlayerService mPlayerService;
+public class PlayerFragment extends DialogFragment {
+
+    private static final String TAG = PlayerFragment.class.getSimpleName();
+    private static final long PROGRESS_UPDATE_INTERNAL = 1000;
+    private static final long PROGRESS_UPDATE_INITIAL_INTERVAL = 100;
+
+    // Views
+    private ImageView mSkipPrev;
+    private ImageView mSkipNext;
+    private ImageView mPlayPause;
+    private TextView mStart;
+    private TextView mEnd;
+    private SeekBar mSeekbar;
+    private TextView mLine1;
+    private TextView mLine2;
+    private ImageView mAlbumImage;
+    private Toolbar mToolbar;
+    private LinearLayout mControls;
+    private Drawable mPauseDrawable;
+    private Drawable mPlayDrawable;
+
+    private final Handler mHandler = new Handler();
+    private MediaBrowser mMediaBrowser;
+
     private PlayerHelper mPlayerHelper;
     private ParcableTrack mTrack;
     private Intent serviceIntent;
@@ -45,20 +81,48 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
     private boolean isPlaying = false;
     private boolean viewsAreCreated = false;
 
-    // Views
-    private Toolbar toolbar;
-    private ImageView albumImage;
-    private TextView trackTitle;
-    private TextView artistName;
-    private LinearLayout playerControls;
-    private SeekBar seekBar;
-    private ImageView prevButton;
-    private ImageView nextButton;
-    private ImageView playPauseButton;
+    private final Runnable mUpdateProgressTask = new Runnable() {
+        @Override
+        public void run() {
+            updateProgress();
+        }
+    };
 
+    private final ScheduledExecutorService mExecutorService =
+            Executors.newSingleThreadScheduledExecutor();
     public PlayerFragment() {
     }
-    
+
+    private ScheduledFuture<?> mScheduleFuture;
+    private PlaybackState mLastPlaybackState;
+
+    private final MediaController.Callback mCallback = new MediaController.Callback() {
+        @Override
+        public void onPlaybackStateChanged(@NonNull PlaybackState state) {
+            Log.d(TAG, "onPlaybackstate changed" + state);
+            updatePlaybackState(state);
+        }
+
+        @Override
+        public void onMetadataChanged(MediaMetadata metadata) {
+            if (metadata != null) {
+                updateMediaDescription(metadata.getDescription());
+                updateDuration(metadata);
+            }
+        }
+    };
+
+    private final MediaBrowser.ConnectionCallback mConnectionCallback =
+        new MediaBrowser.ConnectionCallback() {
+            @Override
+            public void onConnected() {
+                Log.d(TAG, "onConnected");
+                connectToSession(mMediaBrowser.getSessionToken());
+            }
+        };
+
+
+
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -97,119 +161,180 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        if (serviceIntent == null) {
-            serviceIntent = new Intent(activity, PlayerService.class);
-            activity.bindService(serviceIntent, streamingConnection, Context.BIND_AUTO_CREATE);
-            activity.startService(serviceIntent);
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        unbindService();
-        super.onDestroy();
-    }
-
-    @Override
     public void onDestroyView() {
         viewsAreCreated = false;
         super.onDestroyView();
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public void onCancel(DialogInterface dialog) {
+        super.onCancel(dialog);
 
-        outState.putParcelable(PlayerActivity.PLAYER_HELPER, mPlayerHelper);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            this.mPlayerHelper = savedInstanceState.getParcelable(PlayerActivity.PLAYER_HELPER);
-
-            if (this.mPlayerHelper != null) {
-                setViewsInfo(mPlayerHelper.getCurrentTrack());
-            }
-        }
+        getActivity().finish();
     }
 
     private void initializeViews(View view) {
-        toolbar = (Toolbar) view.findViewById(R.id.actionbar);
-        albumImage = (ImageView) view.findViewById(R.id.player_album_image);
-        trackTitle = (TextView) view.findViewById(R.id.player_track_title);
-        artistName = (TextView) view.findViewById(R.id.player_artist_name);
-        playerControls = (LinearLayout) view.findViewById(R.id.player_control_layout);
-        seekBar = (SeekBar) view.findViewById(R.id.player_seekbar);
+        mToolbar = (Toolbar) view.findViewById(R.id.actionbar);
+        mAlbumImage = (ImageView) view.findViewById(R.id.player_album_image);
+        mLine2 = (TextView) view.findViewById(R.id.player_track_title);
+        mLine1 = (TextView) view.findViewById(R.id.player_artist_name);
+        mControls = (LinearLayout) view.findViewById(R.id.player_control_layout);
+        mSeekbar = (SeekBar) view.findViewById(R.id.player_seekbar);
 
-        prevButton = (ImageView) view.findViewById(R.id.player_control_prev);
-        playPauseButton = (ImageView) view.findViewById(R.id.player_control_play_pause);
-        nextButton = (ImageView) view.findViewById(R.id.player_control_next);
+        mSkipPrev = (ImageView) view.findViewById(R.id.player_control_prev);
+        mPlayPause = (ImageView) view.findViewById(R.id.player_control_play_pause);
+        mSkipNext = (ImageView) view.findViewById(R.id.player_control_next);
+
+        mPauseDrawable = getActivity().getDrawable(R.drawable.ic_pause_white_48dp);
+        mPlayDrawable = getActivity().getDrawable(R.drawable.ic_play_arrow_white_48dp);
     }
 
     private void setupViews() {
         // ActionBar
         if(getActivity() != null && getActivity() instanceof AppCompatActivity){
             AppCompatActivity activity = (AppCompatActivity) getActivity();
-            activity.setSupportActionBar(toolbar);
+            activity.setSupportActionBar(mToolbar);
         }
 
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                unbindService();
-            }
-        });
         // Set toolbar title
-        toolbar.setTitle(getString(R.string.now_playing));
+        mToolbar.setTitle(getString(R.string.now_playing));
 
         // Player controls
-        prevButton.setOnClickListener(new View.OnClickListener() {
+        mSkipPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mPlayerService != null) mPlayerService.prev();
+                MediaController.TransportControls controls =
+                        getActivity().getMediaController().getTransportControls();
+                controls.skipToPrevious();
             }
         });
 
-        nextButton.setOnClickListener(new View.OnClickListener() {
+        mSkipNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mPlayerService != null) mPlayerService.next();
+                MediaController.TransportControls controls =
+                        getActivity().getMediaController().getTransportControls();
+                controls.skipToNext();
             }
         });
 
-        playPauseButton.setOnClickListener(new View.OnClickListener() {
+        mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                isPlaying = !isPlaying;
-                if (mPlayerService != null) mPlayerService.togglePlay();
+                PlaybackState state = getActivity().getMediaController().getPlaybackState();
+                if (state != null) {
+                    MediaController.TransportControls controls =
+                            getActivity().getMediaController().getTransportControls();
+                    switch (state.getState()) {
+                        case PlaybackState.STATE_PLAYING: // fall through
+                        case PlaybackState.STATE_BUFFERING:
+                            controls.pause();
+                            stopSeekbarUpdate();
+                            break;
+                        case PlaybackState.STATE_PAUSED:
+                        case PlaybackState.STATE_STOPPED:
+                            controls.play();
+                            scheduleSeekbarUpdate();
+                            break;
+                        default:
+                            Log.d(TAG, "onClick with state " + state.getState());
+                    }
+                }
             }
         });
 
         // Seekbar
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             private boolean userInitiated = false;
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                seekTo(progress, userInitiated);
+                mStart.setText(formatMillis(progress));
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                userInitiated = true;
+                stopSeekbarUpdate();
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                userInitiated = false;
+                getActivity().getMediaController().getTransportControls().seekTo(seekBar.getProgress());
+                scheduleSeekbarUpdate();
             }
         });
+
+        mMediaBrowser = new MediaBrowser(getActivity(),
+                new ComponentName(getActivity(), MusicService.class), mConnectionCallback, null);
+    }
+
+
+    private void connectToSession(MediaSession.Token token) {
+        MediaController mediaController = new MediaController(getActivity(), token);
+        if (mediaController.getMetadata() == null) {
+            getActivity().finish();
+            return;
+        }
+        getActivity().setMediaController(mediaController);
+        mediaController.registerCallback(mCallback);
+        PlaybackState state = mediaController.getPlaybackState();
+        updatePlaybackState(state);
+        MediaMetadata metadata = mediaController.getMetadata();
+        if (metadata != null) {
+            setViewsInfo(mTrack);
+            updateDuration(metadata);
+        }
+        updateProgress();
+        if (state != null && (state.getState() == PlaybackState.STATE_PLAYING ||
+                state.getState() == PlaybackState.STATE_BUFFERING)) {
+            scheduleSeekbarUpdate();
+        }
+    }
+
+    private void scheduleSeekbarUpdate() {
+        stopSeekbarUpdate();
+        if (!mExecutorService.isShutdown()) {
+            mScheduleFuture = mExecutorService.scheduleAtFixedRate(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mHandler.post(mUpdateProgressTask);
+                        }
+                    }, PROGRESS_UPDATE_INITIAL_INTERVAL,
+                    PROGRESS_UPDATE_INTERNAL, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void stopSeekbarUpdate() {
+        if (mScheduleFuture != null) {
+            mScheduleFuture.cancel(false);
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mMediaBrowser != null) {
+            mMediaBrowser.connect();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mMediaBrowser != null) {
+            mMediaBrowser.disconnect();
+        }
+        if (getActivity().getMediaController() != null) {
+            getActivity().getMediaController().unregisterCallback(mCallback);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopSeekbarUpdate();
+        mExecutorService.shutdown();
     }
 
     private void setViewsInfo(ParcableTrack track) {
@@ -221,13 +346,13 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
             if (!TextUtils.isEmpty(track.imageUrl)) {
                 Picasso.with(getActivity())
                         .load(track.imageUrl)
-                        .into(albumImage);
+                        .into(mAlbumImage);
             }
 
             // Artist and track details
-            trackTitle.setText(track.name);
-            artistName.setText(track.artist);
-            seekBar.setMax(track.getDurationInMilli());
+            mLine2.setText(track.name);
+            mLine1.setText(track.artist);
+            mSeekbar.setMax(track.getDurationInMilli());
 
             // Change widget colors based on album art
             Picasso.with(getActivity()).load(track.imageUrl).into(new Target() {
@@ -240,19 +365,19 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
                             Palette.Swatch mutedSwatch = palette.getMutedSwatch();
                             Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
 
-                            trackTitle.setBackgroundColor(getSwatchColor(mutedSwatch));
-                            trackTitle.setTextColor(mutedSwatch != null ?
+                            mLine2.setBackgroundColor(getSwatchColor(mutedSwatch));
+                            mLine2.setTextColor(mutedSwatch != null ?
                                     mutedSwatch.getBodyTextColor() : 0x000000);
-                            artistName.setBackgroundColor(getSwatchColor(mutedSwatch));
-                            artistName.setTextColor(mutedSwatch != null ?
+                            mLine1.setBackgroundColor(getSwatchColor(mutedSwatch));
+                            mLine1.setTextColor(mutedSwatch != null ?
                                     mutedSwatch.getTitleTextColor() : 0x000000);
 
-                            playerControls.setBackgroundColor(getSwatchColor(darkMutedSwatch));
+                            mControls.setBackgroundColor(getSwatchColor(darkMutedSwatch));
 
 
                             // Set statusbar and seekbar color on Lollipop+
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                seekBar.getThumb().setTint(getSwatchColor(vibrantSwatch));
+                                mSeekbar.getThumb().setTint(getSwatchColor(vibrantSwatch));
                                 getActivity().getWindow().setStatusBarColor(getSwatchColor(mutedSwatch));
                             }
                         }
@@ -276,81 +401,95 @@ public class PlayerFragment extends DialogFragment implements PlayerService.Call
         }
     }
 
-    private void setProgress(int position) { seekBar.setProgress(position); }
-
-    public void seekTo(int position, boolean userInitiated) {
-        // TODO: Set time text
-        if (userInitiated && mPlayerService != null) mPlayerService.seekTo(position);
-    }
-
-    private ServiceConnection streamingConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            PlayerService.StreamingBinder binder = (PlayerService.StreamingBinder) service;
-
-            mPlayerService = binder.getService();
-
-            PlayerHelper helper = mPlayerService.getHelper();
-
-            if (helper != null && helper.equals(mPlayerHelper)) {
-                mPlayerHelper = helper;
-            } else {
-                mPlayerService.setHelper(mPlayerHelper, true);
-            }
-
-            setViewsInfo(mPlayerService.getCurrentTrack());
-
-            mPlayerService.registerCallback(PlayerFragment.this);
-
-            serviceBound = true;
+    private void updateMediaDescription(MediaDescription description) {
+        if (description == null) {
+            return;
         }
+        Log.d(TAG, "updateMediaDescription called ");
+        mLine1.setText(description.getTitle());
+        mLine2.setText(description.getSubtitle());
+//        fetchImageAsync(description);
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
+    private void updateDuration(MediaMetadata metadata) {
+        if (metadata == null) {
+            return;
         }
-    };
+        Log.d(TAG, "updateDuration called ");
+        int duration = (int) metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
+        mSeekbar.setMax(duration);
+        mEnd.setText(formatMillis(duration));
+    }
 
-    public void unbindService() {
-        if (mPlayerService != null) {
-            mPlayerService.unregisterCallback(null);
-            getActivity().unbindService(streamingConnection);
-            mPlayerService = null;
+    private void updatePlaybackState(PlaybackState state) {
+        if (state == null) {
+            return;
         }
-    }
+        mLastPlaybackState = state;
 
-    @Override
-    public void onProgressChange(int progress) {
-        setProgress(progress);
-    }
-
-    @Override
-    public void onTrackChanged(ParcableTrack track) {
-        setViewsInfo(track);
-    }
-
-    @Override
-    public void onPlaybackStopped() {
-        playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_48dp);
-        isPlaying = false;
-    }
-
-    @Override
-    public void onPlayerStateChanged(@SpotifyMediaPlayer.State int state) {
-        if (!viewsAreCreated) return;
-
-        switch (state) {
-            case SpotifyMediaPlayer.STATE_STARTED:
-                playPauseButton.setImageResource(R.drawable.ic_pause_white_48dp);
+        switch (state.getState()) {
+            case PlaybackState.STATE_PLAYING:
+                mPlayPause.setVisibility(VISIBLE);
+                mPlayPause.setImageDrawable(mPauseDrawable);
+                mControls.setVisibility(VISIBLE);
+                scheduleSeekbarUpdate();
                 break;
-            case SpotifyMediaPlayer.STATE_PAUSED:
-                playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_48dp);
+            case PlaybackState.STATE_PAUSED:
+                mControls.setVisibility(VISIBLE);
+                mPlayPause.setVisibility(VISIBLE);
+                mPlayPause.setImageDrawable(mPlayDrawable);
+                stopSeekbarUpdate();
                 break;
-            case SpotifyMediaPlayer.STATE_STOPPED:
-                playPauseButton.setImageResource(R.drawable.ic_play_arrow_white_48dp);
-                seekTo(0, false);
+            case PlaybackState.STATE_NONE:
+            case PlaybackState.STATE_STOPPED:
+                mPlayPause.setVisibility(VISIBLE);
+                mPlayPause.setImageDrawable(mPlayDrawable);
+                stopSeekbarUpdate();
                 break;
-
+            case PlaybackState.STATE_BUFFERING:
+                mPlayPause.setVisibility(INVISIBLE);
+                stopSeekbarUpdate();
+                break;
+            default:
+                Log.d(TAG, "Unhandled state " + state.getState());
         }
+
+        mSkipNext.setVisibility((state.getActions() & PlaybackState.ACTION_SKIP_TO_NEXT) == 0
+                ? INVISIBLE : VISIBLE);
+        mSkipPrev.setVisibility((state.getActions() & PlaybackState.ACTION_SKIP_TO_PREVIOUS) == 0
+                ? INVISIBLE : VISIBLE );
+    }
+
+    private void updateProgress() {
+        if (mLastPlaybackState == null) {
+            return;
+        }
+        long currentPosition = mLastPlaybackState.getPosition();
+        if (mLastPlaybackState.getState() != PlaybackState.STATE_PAUSED) {
+            // Calculate the elapsed time between the last position update and now and unless
+            // paused, we can assume (delta * speed) + current position is approximately the
+            // latest position. This ensure that we do not repeatedly call the getPlaybackState()
+            // on MediaController.
+            long timeDelta = SystemClock.elapsedRealtime() -
+                    mLastPlaybackState.getLastPositionUpdateTime();
+            currentPosition += (int) timeDelta * mLastPlaybackState.getPlaybackSpeed();
+        }
+        mSeekbar.setProgress((int) currentPosition);
+    }
+
+    public static String formatMillis(int millisec) {
+        int seconds = millisec / 1000;
+        int hours = seconds / 3600;
+        seconds %= 3600;
+        int minutes = seconds / 60;
+        seconds %= 60;
+        String time;
+        if (hours > 0) {
+            time = String.format("%d:%02d:%02d", new Object[]{Integer.valueOf(hours), Integer.valueOf(minutes), Integer.valueOf(seconds)});
+        } else {
+            time = String.format("%d:%02d", new Object[]{Integer.valueOf(minutes), Integer.valueOf(seconds)});
+        }
+
+        return time;
     }
 }

@@ -2,13 +2,12 @@ package us.phyxsi.spotifystreamer;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import us.phyxsi.spotifystreamer.object.ParcableArtist;
 
-public class TracksActivity extends AppCompatActivity {
+public class TracksActivity extends BaseActivity {
 
     private ParcableArtist mArtist;
 
