@@ -14,6 +14,8 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import us.phyxsi.spotifystreamer.object.ParcableTrack;
+
 public class TrackAdapter extends ArrayAdapter<ParcableTrack> {
     private Context context;
     private LayoutInflater mLayoutInflater;

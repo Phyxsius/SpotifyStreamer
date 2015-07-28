@@ -1,26 +1,38 @@
 package us.phyxsi.spotifystreamer;
 
-import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SearchView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+import us.phyxsi.spotifystreamer.object.ParcableArtist;
+import us.phyxsi.spotifystreamer.utils.NetworkHelper;
+
+public class MainActivity extends BaseActivity implements ArtistFragment.Callback {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String TRACKSFRAGMENT_TAG = "TFTAG";
 
     ArtistFragment artistFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
+        if (findViewById(R.id.tracks_container) != null) {
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.tracks_container, new TracksFragment(), TRACKSFRAGMENT_TAG)
+                        .commit();
+            }
+        }
     }
 
     @Override
@@ -30,15 +42,17 @@ public class MainActivity extends Activity {
 
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.search));
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                if (isOnline()) {
+                if (NetworkHelper.isOnline(getApplicationContext())) {
                     artistFragment = (ArtistFragment) getFragmentManager().findFragmentById(R.id.fragment_artist);
                     artistFragment.fetchArtist(query);
+
+                    searchView.clearFocus();
                 } else {
                     Toast.makeText(getApplicationContext(),
                             getString(R.string.network_offline),
@@ -68,17 +82,30 @@ public class MainActivity extends Activity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onItemSelected(ParcableArtist artist) {
+        if (mIsLargeLayout) {
+            Bundle args = new Bundle();
+            args.putParcelable(TracksFragment.ARTIST, artist);
 
-    public boolean isOnline() {
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnected());
+            TracksFragment fragment = new TracksFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.tracks_container, fragment, TRACKSFRAGMENT_TAG)
+                    .commit();
+        } else {
+            Intent intent = new Intent(this, TracksActivity.class)
+                    .putExtra(TracksFragment.ARTIST, artist);
+
+            startActivity(intent);
+        }
     }
 }

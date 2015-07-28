@@ -5,6 +5,8 @@
     <!-- This permission is necessary in order to perform network access. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
     <application
         android:allowBackup="true"
@@ -18,7 +20,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.SEARCH" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
@@ -33,6 +34,36 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="us.phyxsi.spotifystreamer.MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/action_settings"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/SettingsTheme" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="us.phyxsi.spotifystreamer.MainActivity" />
+        </activity>
+
+        <!-- Main music service, provides media browsing and media playback services to
+         consumers through MediaBrowserService and MediaSession. Consumers connect to it through
+         MediaBrowser (for browsing) and MediaController (for play session control) -->
+        <!--<service-->
+            <!--android:name=".MusicService"-->
+            <!--android:exported="true"-->
+            <!--tools:ignore="ExportedService">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.media.browse.MediaBrowserService" />-->
+            <!--</intent-filter>-->
+        <!--</service>-->
+
+        <activity
+            android:name=".player.PlayerActivity"
+            android:parentActivityName=".TracksActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".TracksActivity"/>
         </activity>
     </application>
 

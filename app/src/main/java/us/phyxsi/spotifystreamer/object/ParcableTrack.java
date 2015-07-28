@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.object;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -8,16 +8,22 @@ public class ParcableTrack implements Parcelable {
     public String artist;
     public String album;
     public String imageUrl;
+    public String previewUrl;
+
 
     public ParcableTrack(String name,
                          String artist,
                          String album,
-                         String imageUrl) {
+                         String imageUrl,
+                         String previewUrl) {
         this.name = name;
         this.artist = artist;
         this.album = album;
         this.imageUrl = imageUrl;
+        this.previewUrl = previewUrl;
     }
+
+    public int getDurationInMilli() { return 30000; }
 
     @Override
     public int describeContents() {
@@ -30,6 +36,7 @@ public class ParcableTrack implements Parcelable {
         dest.writeString(this.artist);
         dest.writeString(this.album);
         dest.writeString(this.imageUrl);
+        dest.writeString(this.previewUrl);
     }
 
     protected ParcableTrack(Parcel in) {
@@ -37,6 +44,7 @@ public class ParcableTrack implements Parcelable {
         this.artist = in.readString();
         this.album = in.readString();
         this.imageUrl = in.readString();
+        this.previewUrl = in.readString();
     }
 
     public static final Creator<ParcableTrack> CREATOR = new Creator<ParcableTrack>() {

@@ -1,8 +1,12 @@
 package us.phyxsi.spotifystreamer;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +23,14 @@ import java.util.List;
 import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import retrofit.RetrofitError;
+import us.phyxsi.spotifystreamer.object.ParcableArtist;
+import us.phyxsi.spotifystreamer.object.ParcableTrack;
+import us.phyxsi.spotifystreamer.player.PlayerActivity;
+import us.phyxsi.spotifystreamer.player.PlayerFragment;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -29,10 +38,12 @@ import retrofit.RetrofitError;
 public class TracksFragment extends Fragment implements ListView.OnItemClickListener {
     private final String LOG_TAG = TracksFragment.class.getSimpleName();
     private final String TRACK_LIST = "TRACK_LIST";
+    static final String ARTIST = "ARTIST";
 
     private ArrayAdapter<ParcableTrack> mTracksAdapter;
     private AbsListView mListView;
     private ArrayList<ParcableTrack> mTracks;
+    private ParcableArtist mArtist;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -50,6 +61,11 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_list, container, false);
+
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mArtist = arguments.getParcelable(TracksFragment.ARTIST);
+        }
 
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mTracksAdapter);
@@ -71,7 +87,8 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
 
             // No previous results found so we can fetch the tracks
             // for the first time for this artist
-            this.fetchTracks(((TracksActivity) getActivity()).getArtistId());
+            if (null != mArtist)
+                this.fetchTracks(mArtist.id);
         }
 
         mTracksAdapter = new TrackAdapter(
@@ -100,12 +117,20 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         ParcableTrack track = (ParcableTrack) parent.getItemAtPosition(position);
 
-//        if (artist != null) {
-//            Intent intent = new Intent(getActivity(), TracksActivity.class)
-//                    .putExtra(Intent.EXTRA_TEXT, artist.name);
-//
-//            startActivity(intent);
-//        }
+        if (track != null) {
+//            getActivity().getMediaController().getTransportControls().playFromMediaId(track.getMediaId(), null);
+
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+
+            if (MainActivity.mIsLargeLayout) {
+                PlayerFragment fragment = new PlayerFragment();
+                fragment.show(fragmentManager, "PLAYER");
+            } else {
+                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+
+                startActivity(intent);
+            }
+        }
     }
 
     /**
@@ -137,9 +162,13 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                 api = new SpotifyApi();
                 SpotifyService spotify = api.getService();
 
+                SharedPreferences prefs =
+                        PreferenceManager.getDefaultSharedPreferences(getActivity());
+
                 Map<String, Object> map = new HashMap<String, Object>() {
                 };
-                map.put("country", "US");
+                map.put("country", prefs.getString(getString(R.string.pref_country_code_key),
+                        getString(R.string.pref_country_code)));
 
                 return spotify.getArtistTopTrack(params[0], map).tracks;
             } catch (RetrofitError e) {
@@ -152,8 +181,15 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         @Override
         protected void onPostExecute(List<Track> result) {
             if (apiException != null) {
+                SpotifyError spotifyError = SpotifyError.fromRetrofitError(apiException);
+                String error = spotifyError.getErrorDetails() != null ?
+                        spotifyError.getErrorDetails().message :
+                        null;
+
+                if (error == null) error = getString(R.string.tracks_api_error);
+
                 Toast.makeText(getActivity(),
-                        getString(R.string.tracks_api_error),
+                        error,
                         Toast.LENGTH_SHORT).show();
                 return;
             } else {
@@ -166,14 +202,17 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
                 }
             }
 
-            mTracksAdapter.clear();
-            for (Track track : result) {
-                mTracksAdapter.add(new ParcableTrack(
-                        track.name,
-                        track.artists.get(0).name,
-                        track.album.name,
-                        track.album.images.size() > 0 ? track.album.images.get(0).url : ""
-                ));
+            if (mTracksAdapter != null) {
+                mTracksAdapter.clear();
+                for (Track track : result) {
+                    mTracksAdapter.add(new ParcableTrack(
+                            track.name,
+                            track.artists.get(0).name,
+                            track.album.name,
+                            track.album.images.size() > 0 ? track.album.images.get(0).url : "",
+                            track.preview_url
+                    ));
+                }
             }
         }
     }

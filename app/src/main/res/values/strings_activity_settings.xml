@@ -1,0 +1,26 @@
+<resources>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Lock screen notifications -->
+    <string name="pref_notifications_key">notifications</string>
+
+    <string name="pref_title_notifications">Show lock screen notifications</string>
+    <string name="pref_enable_notifications_on">Enabled</string>
+    <string name="pref_enable_notifications_off">Disabled</string>
+
+    <!-- Country codes -->
+    <string name="pref_country_code_key">country_code</string>
+
+    <string name="pref_title_country_code">Country code</string>
+    <string name="pref_country_code">US</string>
+
+    <string-array name="pref_county_code_options">
+        <item>United States</item>
+    </string-array>
+    <string-array name="pref_county_code_values">
+        <item>US</item>
+    </string-array>
+
+</resources>
