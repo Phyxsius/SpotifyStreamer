@@ -16,20 +16,20 @@ public class TracksActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tracks);
 
+        mArtist = getIntent().getParcelableExtra(TracksFragment.ARTIST);
+
+        assert getSupportActionBar() != null;
+        getSupportActionBar().setSubtitle(mArtist.name);
+
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
-            mArtist = (ParcableArtist) getIntent().getParcelableExtra(TracksFragment.ARTIST);
-
-            assert getSupportActionBar() != null;
-            getSupportActionBar().setSubtitle(mArtist.name);
-
             arguments.putParcelable(TracksFragment.ARTIST, mArtist);
 
             TracksFragment fragment = new TracksFragment();
             fragment.setArguments(arguments);
 
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_tracks, fragment)
+                    .replace(R.id.fragment_tracks, fragment)
                     .commit();
         }
     }
