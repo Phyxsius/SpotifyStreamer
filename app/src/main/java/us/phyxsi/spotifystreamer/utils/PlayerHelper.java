@@ -18,13 +18,11 @@ import java.io.IOException;
 
 import us.phyxsi.spotifystreamer.MusicService;
 import us.phyxsi.spotifystreamer.Playback;
-import us.phyxsi.spotifystreamer.object.MusicProvider;
 
 import static android.media.MediaPlayer.OnCompletionListener;
 import static android.media.MediaPlayer.OnErrorListener;
 import static android.media.MediaPlayer.OnPreparedListener;
 import static android.media.MediaPlayer.OnSeekCompleteListener;
-import static android.media.session.MediaSession.QueueItem;
 
 /**
  * A class that implements media playback using {@link android.media.MediaPlayer}

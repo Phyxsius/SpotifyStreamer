@@ -47,16 +47,10 @@
                 android:value="us.phyxsi.spotifystreamer.MainActivity" />
         </activity>
 
-        <!-- Main music service, provides media browsing and media playback services to
-         consumers through MediaBrowserService and MediaSession. Consumers connect to it through
-         MediaBrowser (for browsing) and MediaController (for play session control) -->
         <service
             android:name=".MusicService"
             android:exported="true"
             tools:ignore="ExportedService">
-            <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
-            </intent-filter>
         </service>
 
         <activity
