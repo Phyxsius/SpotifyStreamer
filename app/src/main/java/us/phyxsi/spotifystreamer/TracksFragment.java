@@ -31,6 +31,7 @@ import us.phyxsi.spotifystreamer.object.ParcableArtist;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 import us.phyxsi.spotifystreamer.player.PlayerActivity;
 import us.phyxsi.spotifystreamer.player.PlayerFragment;
+import us.phyxsi.spotifystreamer.player.PlayerSession;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -118,15 +119,20 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
         ParcableTrack track = (ParcableTrack) parent.getItemAtPosition(position);
 
         if (track != null) {
-//            getActivity().getMediaController().getTransportControls().playFromMediaId(track.getMediaId(), null);
-
             FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+
+            PlayerSession session = new PlayerSession(mArtist, mTracks, position);
 
             if (MainActivity.mIsLargeLayout) {
                 PlayerFragment fragment = new PlayerFragment();
+                Bundle arguments = new Bundle();
+
+                arguments.putParcelable(PlayerActivity.PLAYER_SESSION, session);
+                fragment.setArguments(arguments);
                 fragment.show(fragmentManager, "PLAYER");
             } else {
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                intent.putExtra(PlayerActivity.PLAYER_SESSION, session);
 
                 startActivity(intent);
             }

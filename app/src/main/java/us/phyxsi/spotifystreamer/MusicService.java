@@ -10,66 +10,10 @@ import android.os.PowerManager;
 import android.support.annotation.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
+import us.phyxsi.spotifystreamer.player.PlayerSession;
 
-/**
- * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
- * client, through the onGetRoot and onLoadChildren methods. It also creates a MediaSession and
- * exposes it through its MediaSession.Token, which allows the client to create a MediaController
- * that connects to and send control commands to the MediaSession remotely. This is useful for
- * user interfaces that need to interact with your media session, like Android Auto. You can
- * (should) also use the same service from your app's UI, which gives a seamless playback
- * experience to the user.
- *
- * To implement a MediaBrowserService, you need to:
- *
- * <ul>
- *
- * <li> Extend {@link android.service.media.MediaBrowserService}, implementing the media browsing
- *      related methods {@link android.service.media.MediaBrowserService#onGetRoot} and
- *      {@link android.service.media.MediaBrowserService#onLoadChildren};
- * <li> In onCreate, start a new {@link android.media.session.MediaSession} and notify its parent
- *      with the session's token {@link android.service.media.MediaBrowserService#setSessionToken};
- *
- * <li> Set a callback on the
- *      {@link android.media.session.MediaSession#setCallback(android.media.session.MediaSession.Callback)}.
- *      The callback will receive all the user's actions, like play, pause, etc;
- *
- * <li> Handle all the actual music playing using any method your app prefers (for example,
- *      {@link android.media.MediaPlayer})
- *
- * <li> Update playbackState, "now playing" metadata and queue, using MediaSession proper methods
- *      {@link android.media.session.MediaSession#setPlaybackState(android.media.session.PlaybackState)}
- *      {@link android.media.session.MediaSession#setMetadata(android.media.MediaMetadata)} and
- *      {@link android.media.session.MediaSession#setQueue(java.util.List)})
- *
- * <li> Declare and export the service in AndroidManifest with an intent receiver for the action
- *      android.media.browse.MediaBrowserService
- *
- * </ul>
- *
- * To make your app compatible with Android Auto, you also need to:
- *
- * <ul>
- *
- * <li> Declare a meta-data tag in AndroidManifest.xml linking to a xml resource
- *      with a &lt;automotiveApp&gt; root element. For a media app, this must include
- *      an &lt;uses name="media"/&gt; element as a child.
- *      For example, in AndroidManifest.xml:
- *          &lt;meta-data android:name="com.google.android.gms.car.application"
- *              android:resource="@xml/automotive_app_desc"/&gt;
- *      And in res/values/automotive_app_desc.xml:
- *          &lt;automotiveApp&gt;
- *              &lt;uses name="media"/&gt;
- *          &lt;/automotiveApp&gt;
- *
- * </ul>
-
- * @see <a href="README.md">README.md</a> for more details.
- *
- */
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
@@ -77,15 +21,23 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     private final IBinder mMusicBinder = new MusicBinder();
     private MediaPlayer mPlayer;
-    private ArrayList<ParcableTrack> mPlaylist;
-    private int mPosition;
+    private PlayerSession mSession;
 
-    public void setmPlaylist(ArrayList<ParcableTrack> mPlaylist) {
-        this.mPlaylist = mPlaylist;
+    public PlayerSession getSession(){
+        return mSession;
     }
 
-    public void setmPosition(int mPosition) {
-        this.mPosition = mPosition;
+    public void setSesion(PlayerSession session) {
+        setSession(session, false);
+    }
+
+    public void setSession(PlayerSession session, boolean playWhenPrepared) {
+        this.mSession = session;
+        if (session == null || session.getPlaylistSize() == 0) {
+            return;
+        }
+
+        play();
     }
 
     @Nullable
@@ -98,7 +50,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onCreate() {
         super.onCreate();
 
-        this.mPosition = 0;
         this.mPlayer = new MediaPlayer();
 
         initializePlayer();
@@ -124,7 +75,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void play() {
         mPlayer.reset();
 
-        prepareToPlay(mPlaylist.get(mPosition));
+        prepareToPlay(mSession.getCurrentTrack());
     }
 
     private void prepareToPlay(ParcableTrack track) {
@@ -140,6 +91,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        return false;
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+
     }
 
     public class MusicBinder extends Binder {

@@ -11,7 +11,7 @@ import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.SettingsActivity;
 
 public class PlayerActivity extends FragmentActivity {
-    public static final String PLAYER_HELPER = "PLAYER_HELPER";
+    public static final String PLAYER_SESSION = "us.phyxsi.spotifystreamer.PLAYER_SESSION";
 
     boolean mIsLargeLayout;
 
@@ -22,6 +22,8 @@ public class PlayerActivity extends FragmentActivity {
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
+            arguments.putParcelable(PLAYER_SESSION,
+                    getIntent().getExtras().getParcelable(PLAYER_SESSION));
 
             PlayerFragment fragment = new PlayerFragment();
             fragment.setArguments(arguments);
@@ -35,9 +37,6 @@ public class PlayerActivity extends FragmentActivity {
                     .commit();
         }
     }
-
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -23,9 +23,20 @@ public class PlayerFragment extends DialogFragment {
 
     private static final String TAG = PlayerFragment.class.getSimpleName();
 
+    private PlayerSession mSession;
     private MusicService mMusicService;
     private boolean serviceBound = false;
     private Intent mPlayIntent;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Bundle arguments = getArguments();
+        if (arguments.containsKey(PlayerActivity.PLAYER_SESSION)) {
+            this.mSession = arguments.getParcelable(PlayerActivity.PLAYER_SESSION);
+        }
+    }
 
     @Nullable
     @Override
@@ -59,7 +70,13 @@ public class PlayerFragment extends DialogFragment {
 
             mMusicService = binder.getService();
 
-            mMusicService.setmPlaylist(mPlaylist);
+            PlayerSession serviceSession = mMusicService.getSession();
+            if (serviceSession != null && serviceSession.equals(mSession)) {
+                mSession = serviceSession;
+            } else {
+                mMusicService.setSession(mSession, true);
+            }
+
             serviceBound = true;
         }
 
@@ -67,5 +84,5 @@ public class PlayerFragment extends DialogFragment {
         public void onServiceDisconnected(ComponentName name) {
             serviceBound = false;
         }
-    }
+    };
 }

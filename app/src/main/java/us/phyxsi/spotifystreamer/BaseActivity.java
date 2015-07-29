@@ -1,24 +1,17 @@
 package us.phyxsi.spotifystreamer;
 
-import android.content.ComponentName;
-import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
-import android.media.session.MediaController;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import us.phyxsi.spotifystreamer.ui.MediaBrowserProvider;
 import us.phyxsi.spotifystreamer.ui.PlaybackControlsFragment;
 import us.phyxsi.spotifystreamer.utils.NetworkHelper;
 
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BaseActivity extends AppCompatActivity implements MediaBrowserProvider {
+public abstract class BaseActivity extends AppCompatActivity {
 
     private static final String TAG = BaseActivity.class.getSimpleName();
 
@@ -37,11 +30,6 @@ public abstract class BaseActivity extends AppCompatActivity implements MediaBro
 
         Log.d(TAG, "Activity onCreate");
 
-        // Connect a media browser just to get the media session token. There are other ways
-        // this can be done, for example by sharing the session token directly.
-        mMediaBrowser = new MediaBrowser(this,
-                new ComponentName(this, MusicService.class), mConnectionCallback, null);
-
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
     }
 
@@ -57,26 +45,12 @@ public abstract class BaseActivity extends AppCompatActivity implements MediaBro
         }
 
         hidePlaybackControls();
-
-        mMediaBrowser.connect();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "Activity onStop");
-        if (getMediaController() != null) {
-            getMediaController().unregisterCallback(mMediaControllerCallback);
-        }
-        mMediaBrowser.disconnect();
-    }
-
-    public MediaBrowser getMediaBrowser() {
-        return mMediaBrowser;
-    }
-
-    protected void onMediaControllerConnected() {
-        // empty implementation, can be overridden by clients.
     }
 
     protected void showPlaybackControls() {
@@ -97,83 +71,4 @@ public abstract class BaseActivity extends AppCompatActivity implements MediaBro
                 .hide(mControlsFragment)
                 .commit();
     }
-
-    /**
-     * Check if the MediaSession is active and in a "playback-able" state
-     * (not NONE and not STOPPED).
-     *
-     * @return true if the MediaSession's state requires playback controls to be visible.
-     */
-    protected boolean shouldShowControls() {
-        MediaController mediaController = getMediaController();
-        if (mediaController == null ||
-                mediaController.getMetadata() == null ||
-                mediaController.getPlaybackState() == null) {
-            return false;
-        }
-        switch (mediaController.getPlaybackState().getState()) {
-            case PlaybackState.STATE_ERROR:
-            case PlaybackState.STATE_NONE:
-            case PlaybackState.STATE_STOPPED:
-                return false;
-            default:
-                return true;
-        }
-    }
-
-    private void connectToSession(MediaSession.Token token) {
-        MediaController mediaController = new MediaController(this, token);
-        setMediaController(mediaController);
-        mediaController.registerCallback(mMediaControllerCallback);
-
-        if (shouldShowControls()) {
-            showPlaybackControls();
-        } else {
-            Log.d(TAG, "connectionCallback.onConnected: " +
-                    "hiding controls because metadata is null");
-            hidePlaybackControls();
-        }
-
-        if (mControlsFragment != null) {
-            mControlsFragment.onConnected();
-        }
-
-        onMediaControllerConnected();
-    }
-
-    // Callback that ensures that we are showing the controls
-    private final MediaController.Callback mMediaControllerCallback =
-            new MediaController.Callback() {
-                @Override
-                public void onPlaybackStateChanged(@NonNull PlaybackState state) {
-                    if (shouldShowControls()) {
-                        showPlaybackControls();
-                    } else {
-                        Log.d(TAG, "mediaControllerCallback.onPlaybackStateChanged: " +
-                                "hiding controls because state is " + state.getState());
-                        hidePlaybackControls();
-                    }
-                }
-
-                @Override
-                public void onMetadataChanged(MediaMetadata metadata) {
-                    if (shouldShowControls()) {
-                        showPlaybackControls();
-                    } else {
-                        Log.d(TAG, "mediaControllerCallback.onMetadataChanged: " +
-                                "hiding controls because metadata is null");
-                        hidePlaybackControls();
-                    }
-                }
-            };
-
-    private final MediaBrowser.ConnectionCallback mConnectionCallback =
-            new MediaBrowser.ConnectionCallback() {
-                @Override
-                public void onConnected() {
-                    Log.d(TAG, "onConnected");
-                    connectToSession(mMediaBrowser.getSessionToken());
-                }
-            };
-
 }
