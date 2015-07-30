@@ -73,12 +73,69 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void play() {
-        mPlayer.reset();
-
         prepareToPlay(mSession.getCurrentTrack());
     }
 
+    public void resume() {
+        mPlayer.start();
+    }
+
+    public void pause() {
+        mPlayer.pause();
+    }
+
+    private void stop() {
+        mPlayer.stop();
+    }
+
+    public void togglePlay() {
+        if (mPlayer.isPlaying()) pause();
+        else resume();
+    }
+
+    public void playNext() {
+        ParcableTrack track = mSession.getNextTrack();
+
+        prepareToPlay(track);
+    }
+
+    public void playPrevious() {
+        ParcableTrack track = mSession.getPreviousTrack();
+
+        prepareToPlay(track);
+    }
+
+    public void seekTo(int position) {
+        mPlayer.seekTo(position);
+    }
+
+    public boolean canPlayNext() {
+        if (mSession == null) return false;
+
+        int playlistSize = mSession.getPlaylistSize();
+        if (playlistSize <= 1) return false;
+
+        int nextIndex = mSession.getCurrentPosition() + 1;
+        return nextIndex >= 0 && nextIndex < playlistSize;
+    }
+
+    public boolean canPlayPrev() {
+        if (mSession == null) return false;
+
+        int playlistSize = mSession.getPlaylistSize();
+        if (playlistSize <= 1) return false;
+
+        int prevIndex = mSession.getCurrentPosition() - 1;
+        return prevIndex >= 0 && prevIndex < playlistSize;
+    }
+
+    public int getCurrentPosition() {
+        return mPlayer.getCurrentPosition();
+    }
+
     private void prepareToPlay(ParcableTrack track) {
+        mPlayer.reset();
+
         try {
             mPlayer.setDataSource(track.previewUrl);
         } catch (IOException e) {
@@ -100,6 +157,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public void onCompletion(MediaPlayer mp) {
+        if (canPlayNext()) playNext();
+        else {
+            mPlayer.reset();
+            mPlayer.release();
+            mPlayer = null;
+        }
 
     }
 

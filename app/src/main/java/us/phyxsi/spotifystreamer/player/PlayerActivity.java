@@ -13,8 +13,6 @@ import us.phyxsi.spotifystreamer.SettingsActivity;
 public class PlayerActivity extends FragmentActivity {
     public static final String PLAYER_SESSION = "us.phyxsi.spotifystreamer.PLAYER_SESSION";
 
-    boolean mIsLargeLayout;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
