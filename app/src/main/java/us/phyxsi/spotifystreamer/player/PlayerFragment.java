@@ -9,13 +9,13 @@ import android.content.ServiceConnection;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,10 +32,10 @@ import us.phyxsi.spotifystreamer.MusicService;
 import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 
-public class PlayerFragment extends DialogFragment implements com.squareup.picasso.Callback, Palette.PaletteAsyncListener {
+public class PlayerFragment extends DialogFragment implements com.squareup.picasso.Callback,
+        Palette.PaletteAsyncListener, MusicService.MusicServiceCallback, MusicService.OnStateChangeListener {
 
     private static final String TAG = PlayerFragment.class.getSimpleName();
-    private static final long PROGRESS_UPDATE_INTERNAL = 100;
 
     // Views
     private ImageView mSkipPrev;
@@ -57,21 +57,13 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     private Intent mPlayIntent;
     private ParcableTrack mTrack;
     private boolean serviceBound = false;
-    private boolean isPlaying = true;
+    private boolean isPlaying = (mMusicService != null);
     private boolean viewsAreCreated = false;
 
-    private Handler mHandler = new Handler();
-    private boolean watchProgressUpdate = false;
-    private final Runnable mUpdateProgressTask = new Runnable() {
-        @Override
-        public void run() {
-            updateProgress();
-            if (watchProgressUpdate) mHandler.postDelayed(this, PROGRESS_UPDATE_INTERNAL);
-        }
-    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "PlayerFragment onCreate called");
         super.onCreate(savedInstanceState);
 
         Bundle arguments = getArguments();
@@ -86,6 +78,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG, "PlayerFragment onCreateView called");
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
         // Initialize views
@@ -103,6 +96,20 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
         mPauseDrawable = getActivity().getDrawable(R.drawable.ic_pause_white_48dp);
         mPlayDrawable = getActivity().getDrawable(R.drawable.ic_play_arrow_white_48dp);
 
+        // Toolbar
+//        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                unbindService();
+//            }
+//        });
+//
+//        if (getActivity() != null && getActivity() instanceof AppCompatActivity) {
+//            AppCompatActivity activity = (AppCompatActivity) getActivity();
+//            activity.setSupportActionBar(mToolbar);
+//        }
+
+        // Music control buttons
         mSkipNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -117,16 +124,14 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
             }
         });
 
+        mPlayPause.setImageDrawable((isPlaying) ? mPauseDrawable : mPlayDrawable);
+
         mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 isPlaying = !isPlaying;
 
-                setWatchProgress(isPlaying);
                 if (mMusicService != null) mMusicService.togglePlay();
-
-                if (isPlaying) mPlayPause.setImageDrawable(mPauseDrawable);
-                else mPlayPause.setImageDrawable(mPlayDrawable);
             }
         });
 
@@ -141,13 +146,11 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 userInitiated = true;
-                setWatchProgress(false);
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 userInitiated = false;
-                setWatchProgress(true);
             }
         });
 
@@ -160,14 +163,30 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     @Override
     public void onDestroyView() {
+        Log.d(TAG, "PlayerFragment onDestroyView called");
         viewsAreCreated = false;
 
         super.onDestroyView();
-        setWatchProgress(false);
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "PlayerFragment onDestroy called");
+        unbindService();
+        super.onDestroy();
+    }
+
+    public void unbindService() {
+        if (mMusicService != null) {
+            mMusicService.unregisterCallback(null);
+            getActivity().unbindService(streamingConnection);
+            mMusicService = null;
+        }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "PlayerFragment onSaveInstanceState called");
         super.onSaveInstanceState(outState);
 
         outState.putParcelable(PlayerActivity.PLAYER_SESSION, mSession);
@@ -175,6 +194,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        Log.d(TAG, "PlayerFragment onActivityCreated called");
         super.onActivityCreated(savedInstanceState);
 
         if (savedInstanceState != null &&
@@ -190,6 +210,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Log.d(TAG, "PlayerFragment onCreateDialog called");
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         return dialog;
@@ -197,6 +218,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     @Override
     public void onAttach(Activity activity) {
+        Log.d(TAG, "PlayerFragment onAttach called");
         super.onAttach(activity);
 
         if (mPlayIntent == null) {
@@ -213,8 +235,6 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
             fetchImageAsync();
 
             mSeekbar.setMax(track.getDurationInMilli());
-
-            if (isPlaying) mPlayPause.setImageDrawable(mPauseDrawable);
         }
     }
 
@@ -227,14 +247,6 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     private void updateProgress() {
         mSeekbar.setProgress((int) mMusicService.getCurrentPosition());
-    }
-
-    private void setWatchProgress(boolean watchProgress){
-        watchProgressUpdate = watchProgress;
-
-        if (watchProgress){
-            mUpdateProgressTask.run();
-        }
     }
 
     private void fetchImageAsync() {
@@ -270,6 +282,34 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     }
 
+    // MusicService callback overrides
+    @Override
+    public void onProgressChange(int progress) {
+        mSeekbar.setProgress(progress);
+    }
+
+    @Override
+    public void onTrackChanged(ParcableTrack track) {
+        setViewsInfo(track);
+    }
+
+    @Override
+    public void onPlaybackStopped() {
+        mPlayPause.setImageDrawable(mPlayDrawable);
+        isPlaying = false;
+    }
+
+    @Override
+    public void onStateChanged(boolean isPlaying) {
+        if (!viewsAreCreated) return;
+
+        mPlayPause.setImageDrawable((isPlaying) ? mPauseDrawable : mPlayDrawable);
+    }
+
+    private void setOnPlayerStateChanged() {
+        if (mMusicService != null) mMusicService.setOnStateChangeListener(this);
+    }
+
     public static String formatMillis(int millisec) {
         int seconds = millisec / 1000;
         int hours = seconds / 3600;
@@ -289,6 +329,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     private ServiceConnection streamingConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "PlayerFragment onServiceCreated called");
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
 
             mMusicService = binder.getService();
@@ -300,7 +341,10 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
                 mMusicService.setSession(mSession, true);
             }
 
-            setWatchProgress(true);
+            mMusicService.registerCallback(PlayerFragment.this);
+            setOnPlayerStateChanged();
+            onStateChanged(mMusicService.isPlaying());
+
             serviceBound = true;
         }
 
