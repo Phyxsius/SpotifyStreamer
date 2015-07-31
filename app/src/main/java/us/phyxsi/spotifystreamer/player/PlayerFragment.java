@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -18,7 +19,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,6 +30,8 @@ import com.squareup.picasso.Picasso;
 import us.phyxsi.spotifystreamer.MusicService;
 import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
+
+import static android.view.ViewTreeObserver.OnGlobalLayoutListener;
 
 public class PlayerFragment extends DialogFragment implements com.squareup.picasso.Callback,
         Palette.PaletteAsyncListener, MusicService.MusicServiceCallback, MusicService.OnStateChangeListener {
@@ -251,15 +253,20 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     private void fetchImageAsync() {
         mAlbumImage.getViewTreeObserver()
-                   .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                   .addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
                        @Override
                        public void onGlobalLayout() {
                            Picasso.with(getActivity())
-                                   .load(mTrack.imageUrl)
+                                   .load(mSession.getCurrentTrack().imageUrl)
                                    .resize(mAlbumImage.getWidth(), mAlbumImage.getHeight())
                                    .centerCrop()
                                    .into(mAlbumImage, PlayerFragment.this);
 
+                           if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                               mAlbumImage.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                           } else {
+                               mAlbumImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                           }
                        }
                    });
     }
