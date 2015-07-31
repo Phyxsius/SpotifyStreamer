@@ -36,6 +36,12 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     private static final String TAG = PlayerFragment.class.getSimpleName();
 
+    // Palette colors
+    private int palettePrimaryColor;
+    private int paletteAccentColor;
+    private int primaryColor;
+    private int accentColor;
+
     // Views
     private ImageView mSkipPrev;
     private ImageView mSkipNext;
@@ -64,6 +70,9 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "PlayerFragment onCreate called");
         super.onCreate(savedInstanceState);
+
+        primaryColor = palettePrimaryColor = getResources().getColor(R.color.primary);
+        accentColor = paletteAccentColor = getResources().getColor(R.color.accent);
 
         Bundle arguments = getArguments();
         if (arguments != null && arguments.containsKey(PlayerActivity.PLAYER_SESSION)) {
@@ -258,7 +267,26 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     // Palette overrides
     @Override
     public void onGenerated(Palette palette) {
+        Palette.Swatch primarySwatch = palette.getDarkMutedSwatch();
+        Palette.Swatch accentSwatch = palette.getVibrantSwatch();
 
+        palettePrimaryColor = palette.getDarkMutedColor(primaryColor);
+        paletteAccentColor = palette.getVibrantColor(accentColor);
+
+        if (palettePrimaryColor == primaryColor) {
+            primarySwatch = palette.getMutedSwatch();
+            accentSwatch = palette.getLightVibrantSwatch();
+
+            palettePrimaryColor = palette.getMutedColor(primaryColor);
+            paletteAccentColor = palette.getLightVibrantColor(accentColor);
+        }
+
+        mLine1.setBackgroundColor(palettePrimaryColor);
+        mLine1.setTextColor(primarySwatch.getTitleTextColor());
+        mLine2.setBackgroundColor(palettePrimaryColor);
+        mLine2.setTextColor(primarySwatch.getBodyTextColor());
+
+        mControls.setBackgroundColor(paletteAccentColor);
     }
 
     // Picasso overrides
