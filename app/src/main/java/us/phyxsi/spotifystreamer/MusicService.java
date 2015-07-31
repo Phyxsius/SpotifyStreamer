@@ -57,10 +57,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void setSession(PlayerSession session) {
-        setSession(session, false);
-    }
-
-    public void setSession(PlayerSession session, boolean playWhenPrepared) {
         this.mSession = session;
 
         if (session == null || session.getPlaylistSize() == 0) {
@@ -96,12 +92,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String action = intent.getAction();
-        if (ACTION_PLAY.equals(action)) {
-            if (mPlayer == null) initializePlayer();
-            else mPlayer.reset();
+        if (intent != null) {
+            String action = intent.getAction();
 
-            setSession((PlayerSession) intent.getParcelableExtra(PlayerActivity.PLAYER_SESSION));
+            if (ACTION_PLAY.equals(action)) {
+                if (mPlayer == null) initializePlayer();
+                else mPlayer.reset();
+
+                setSession((PlayerSession) intent.getParcelableExtra(PlayerActivity.PLAYER_SESSION));
+            }
         }
 
         return START_STICKY;
@@ -116,11 +115,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     @Override
-    public boolean onUnbind(Intent intent) {
+    public void onDestroy() {
         mPlayer.stop();
         mPlayer.release();
+        mPlayer = null;
 
-        return false;
+        super.onDestroy();
     }
 
     public void initializePlayer() {
@@ -294,8 +294,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
-    public static interface OnStateChangeListener {
-        public void onStateChanged(boolean isPlaying);
+    public interface OnStateChangeListener {
+        void onStateChanged(boolean isPlaying);
     }
 
     public interface MusicServiceCallback {
@@ -304,17 +304,17 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
          * Called when the progress of a track has changed
          * @param progress the progress of the track in milliseconds
          */
-        public void onProgressChange(int progress);
+        void onProgressChange(int progress);
 
         /**
          * Called when a new track is set
          * @param track the new track to be played
          */
-        public void onTrackChanged(ParcableTrack track);
+        void onTrackChanged(ParcableTrack track);
 
         /**
          * Called when the playlist is completed and playback stopped
          */
-        public void onPlaybackStopped();
+        void onPlaybackStopped();
     }
 }

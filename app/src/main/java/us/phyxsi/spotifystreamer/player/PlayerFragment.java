@@ -3,7 +3,6 @@ package us.phyxsi.spotifystreamer.player;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.drawable.BitmapDrawable;
@@ -74,6 +73,8 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
             this.mTrack = mSession.getCurrentTrack();
         }
     }
+
+
 
     @Nullable
     @Override
@@ -166,14 +167,9 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
         Log.d(TAG, "PlayerFragment onDestroyView called");
         viewsAreCreated = false;
 
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "PlayerFragment onDestroy called");
         unbindService();
-        super.onDestroy();
+
+        super.onDestroyView();
     }
 
     public void unbindService() {
@@ -205,6 +201,13 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
                 setViewsInfo(mSession.getCurrentTrack());
             }
         }
+
+        if (mPlayIntent == null) {
+            Activity activity = getActivity();
+            mPlayIntent = new Intent(activity, MusicService.class);
+            activity.startService(mPlayIntent);
+            activity.bindService(mPlayIntent, streamingConnection, activity.BIND_AUTO_CREATE);
+        }
     }
 
     @NonNull
@@ -214,18 +217,6 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         return dialog;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        Log.d(TAG, "PlayerFragment onAttach called");
-        super.onAttach(activity);
-
-        if (mPlayIntent == null) {
-            mPlayIntent = new Intent(activity, MusicService.class);
-            activity.bindService(mPlayIntent, streamingConnection, Context.BIND_AUTO_CREATE);
-            activity.startService(mPlayIntent);
-        }
     }
 
     private void setViewsInfo(ParcableTrack track) {
@@ -246,7 +237,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     }
 
     private void updateProgress() {
-        mSeekbar.setProgress((int) mMusicService.getCurrentPosition());
+        mSeekbar.setProgress(mMusicService.getCurrentPosition());
     }
 
     private void fetchImageAsync() {
@@ -338,7 +329,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
             if (serviceSession != null && serviceSession.equals(mSession)) {
                 mSession = serviceSession;
             } else {
-                mMusicService.setSession(mSession, true);
+                mMusicService.setSession(mSession);
             }
 
             mMusicService.registerCallback(PlayerFragment.this);
