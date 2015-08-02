@@ -55,7 +55,8 @@
 
         <activity
             android:name=".player.PlayerActivity"
-            android:parentActivityName=".TracksActivity">
+            android:parentActivityName=".TracksActivity"
+            android:theme="@style/PlayerTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".TracksActivity"/>

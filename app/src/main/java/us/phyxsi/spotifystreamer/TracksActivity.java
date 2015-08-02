@@ -18,8 +18,10 @@ public class TracksActivity extends BaseActivity {
 
         mArtist = getIntent().getParcelableExtra(TracksFragment.ARTIST);
 
-        assert getSupportActionBar() != null;
-        getSupportActionBar().setSubtitle(mArtist.name);
+        if (mArtist != null) {
+            assert getSupportActionBar() != null;
+            getSupportActionBar().setSubtitle(mArtist.name);
+        }
 
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();

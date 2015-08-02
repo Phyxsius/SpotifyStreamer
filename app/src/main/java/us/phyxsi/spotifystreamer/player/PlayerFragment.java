@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -20,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -109,17 +111,19 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
         mPlayDrawable = getActivity().getDrawable(R.drawable.ic_play_arrow_white_48dp);
 
         // Toolbar
-//        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                unbindService();
-//            }
-//        });
-//
-//        if (getActivity() != null && getActivity() instanceof AppCompatActivity) {
-//            AppCompatActivity activity = (AppCompatActivity) getActivity();
-//            activity.setSupportActionBar(mToolbar);
-//        }
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                unbindService();
+            }
+        });
+
+        mToolbar.setTitle(getString(R.string.now_playing));
+
+        if (getActivity() != null && getActivity() instanceof AppCompatActivity) {
+            AppCompatActivity activity = (AppCompatActivity) getActivity();
+            activity.setSupportActionBar(mToolbar);
+        }
 
         // Music control buttons
         mSkipNext.setOnClickListener(new View.OnClickListener() {
@@ -294,6 +298,12 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
         mLine2.setTextColor(primarySwatch.getBodyTextColor());
 
         mControls.setBackgroundColor(paletteAccentColor);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getActivity().getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(paletteAccentColor);
+        }
     }
 
     // Picasso overrides
