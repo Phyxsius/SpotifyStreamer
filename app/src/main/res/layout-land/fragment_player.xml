@@ -8,6 +8,17 @@
     android:paddingBottom="@dimen/zero"
     tools:context="us.phyxsi.spotifystreamer.PlayerActivityFragment">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:elevation="4dp"
+        android:background="@android:color/transparent"
+        android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -59,42 +70,34 @@
                     android:paddingTop="@dimen/zero"
                     android:layout_weight="1"
                     android:gravity="top|left" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="bottom"
+                    android:background="@android:color/transparent"
+                    android:layout_marginTop="@dimen/player_seekbar_margin_offset">
+
+                    <SeekBar
+                        android:id="@+id/player_seekbar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:elevation="9dp"
+                        android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
+                        android:padding="@dimen/zero"
+                        android:progressBackgroundTint="@android:color/transparent"
+                        android:progress="50" />
+
+                    <include
+                        layout="@layout/player_controls"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_gravity="bottom"
-            android:background="@android:color/transparent"
-            android:layout_marginTop="@dimen/player_seekbar_margin_offset">
-
-            <SeekBar
-                android:id="@+id/player_seekbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:elevation="9dp"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
-                android:padding="@dimen/zero"
-                android:progressBackgroundTint="@android:color/transparent"
-                android:progress="50" />
-
-            <include
-                layout="@layout/player_controls"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </LinearLayout>
     </LinearLayout>
-
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/actionbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:layout_gravity="top"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        style="@style/SpotifyStreamer.Toolbar" />
 
 </RelativeLayout>

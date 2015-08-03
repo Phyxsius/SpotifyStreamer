@@ -1,4 +1,32 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/player_container"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+    android:layout_height="match_parent">
+
+    <include android:id="@+id/toolbar"
+        layout="@layout/include_toolbar"/>
+
+    <FrameLayout
+        android:id="@+id/player_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/controls_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        custom:cardElevation="8dp">
+
+        <fragment android:name="us.phyxsi.spotifystreamer.ui.PlaybackControlsFragment"
+            android:id="@+id/fragment_playback_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            tools:layout="@layout/fragment_playback_controls" />
+
+    </android.support.v7.widget.CardView>
+</RelativeLayout>

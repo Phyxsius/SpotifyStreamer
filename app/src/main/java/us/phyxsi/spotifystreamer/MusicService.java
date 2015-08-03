@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
-import us.phyxsi.spotifystreamer.player.PlayerActivity;
+import us.phyxsi.spotifystreamer.player.FullScreenPlayerActivity;
 import us.phyxsi.spotifystreamer.player.PlayerSession;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
@@ -99,7 +99,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 if (mPlayer == null) initializePlayer();
                 else mPlayer.reset();
 
-                setSession((PlayerSession) intent.getParcelableExtra(PlayerActivity.PLAYER_SESSION));
+                setSession((PlayerSession) intent.getParcelableExtra(FullScreenPlayerActivity.PLAYER_SESSION));
             }
         }
 

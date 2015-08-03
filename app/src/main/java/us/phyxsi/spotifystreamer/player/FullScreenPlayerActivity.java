@@ -5,15 +5,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import us.phyxsi.spotifystreamer.BaseActivity;
 import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.SettingsActivity;
 
-public class PlayerActivity extends AppCompatActivity {
+public class FullScreenPlayerActivity extends BaseActivity {
     public static final String PLAYER_SESSION = "us.phyxsi.spotifystreamer.PLAYER_SESSION";
 
     @Override
@@ -21,12 +21,14 @@ public class PlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
+        initializeToolbar(R.menu.menu_player);
+
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
             arguments.putParcelable(PLAYER_SESSION,
                     getIntent().getExtras().getParcelable(PLAYER_SESSION));
 
-            PlayerFragment fragment = new PlayerFragment();
+            FullScreenPlayerFragment fragment = new FullScreenPlayerFragment();
             fragment.setArguments(arguments);
 
             // To make it fullscreen, use the 'content' root view as the container

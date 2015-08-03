@@ -35,10 +35,10 @@ import us.phyxsi.spotifystreamer.object.ParcableTrack;
 
 import static android.view.ViewTreeObserver.OnGlobalLayoutListener;
 
-public class PlayerFragment extends DialogFragment implements com.squareup.picasso.Callback,
+public class FullScreenPlayerFragment extends DialogFragment implements com.squareup.picasso.Callback,
         Palette.PaletteAsyncListener, MusicService.MusicServiceCallback, MusicService.OnStateChangeListener {
 
-    private static final String TAG = PlayerFragment.class.getSimpleName();
+    private static final String TAG = FullScreenPlayerFragment.class.getSimpleName();
 
     // Palette colors
     private int palettePrimaryColor;
@@ -72,15 +72,15 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        Log.d(TAG, "PlayerFragment onCreate called");
+        Log.d(TAG, "FullScreenPlayerFragment onCreate called");
         super.onCreate(savedInstanceState);
 
         primaryColor = palettePrimaryColor = getResources().getColor(R.color.primary);
         accentColor = paletteAccentColor = getResources().getColor(R.color.accent);
 
         Bundle arguments = getArguments();
-        if (arguments != null && arguments.containsKey(PlayerActivity.PLAYER_SESSION)) {
-            this.mSession = arguments.getParcelable(PlayerActivity.PLAYER_SESSION);
+        if (arguments != null && arguments.containsKey(FullScreenPlayerActivity.PLAYER_SESSION)) {
+            this.mSession = arguments.getParcelable(FullScreenPlayerActivity.PLAYER_SESSION);
 
             assert this.mSession != null;
             this.mTrack = mSession.getCurrentTrack();
@@ -92,11 +92,11 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "PlayerFragment onCreateView called");
+        Log.d(TAG, "FullScreenPlayerFragment onCreateView called");
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
         // Initialize views
-        mToolbar = (Toolbar) view.findViewById(R.id.actionbar);
+        mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mAlbumImage = (ImageView) view.findViewById(R.id.player_album_image);
         mLine2 = (TextView) view.findViewById(R.id.player_track_title);
         mLine1 = (TextView) view.findViewById(R.id.player_artist_name);
@@ -123,6 +123,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
         if (getActivity() != null && getActivity() instanceof AppCompatActivity) {
             AppCompatActivity activity = (AppCompatActivity) getActivity();
             activity.setSupportActionBar(mToolbar);
+            mToolbar.inflateMenu(R.menu.menu_player);
         }
 
         // Music control buttons
@@ -179,7 +180,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     @Override
     public void onDestroyView() {
-        Log.d(TAG, "PlayerFragment onDestroyView called");
+        Log.d(TAG, "FullScreenPlayerFragment onDestroyView called");
         viewsAreCreated = false;
 
         unbindService();
@@ -197,20 +198,20 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.d(TAG, "PlayerFragment onSaveInstanceState called");
+        Log.d(TAG, "FullScreenPlayerFragment onSaveInstanceState called");
         super.onSaveInstanceState(outState);
 
-        outState.putParcelable(PlayerActivity.PLAYER_SESSION, mSession);
+        outState.putParcelable(FullScreenPlayerActivity.PLAYER_SESSION, mSession);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        Log.d(TAG, "PlayerFragment onActivityCreated called");
+        Log.d(TAG, "FullScreenPlayerFragment onActivityCreated called");
         super.onActivityCreated(savedInstanceState);
 
         if (savedInstanceState != null &&
-                savedInstanceState.containsKey(PlayerActivity.PLAYER_SESSION)) {
-            mSession = savedInstanceState.getParcelable(PlayerActivity.PLAYER_SESSION);
+                savedInstanceState.containsKey(FullScreenPlayerActivity.PLAYER_SESSION)) {
+            mSession = savedInstanceState.getParcelable(FullScreenPlayerActivity.PLAYER_SESSION);
 
             if (mSession != null) {
                 setViewsInfo(mSession.getCurrentTrack());
@@ -228,7 +229,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Log.d(TAG, "PlayerFragment onCreateDialog called");
+        Log.d(TAG, "FullScreenPlayerFragment onCreateDialog called");
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         return dialog;
@@ -264,7 +265,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
                                    .load(mSession.getCurrentTrack().imageUrl)
                                    .resize(mAlbumImage.getWidth(), mAlbumImage.getHeight())
                                    .centerCrop()
-                                   .into(mAlbumImage, PlayerFragment.this);
+                                   .into(mAlbumImage, FullScreenPlayerFragment.this);
 
                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
                                mAlbumImage.getViewTreeObserver().removeGlobalOnLayoutListener(this);
@@ -299,7 +300,8 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
 
         mControls.setBackgroundColor(paletteAccentColor);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getActivity().getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(paletteAccentColor);
@@ -365,7 +367,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
     private ServiceConnection streamingConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "PlayerFragment onServiceCreated called");
+            Log.d(TAG, "FullScreenPlayerFragment onServiceCreated called");
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
 
             mMusicService = binder.getService();
@@ -377,7 +379,7 @@ public class PlayerFragment extends DialogFragment implements com.squareup.picas
                 mMusicService.setSession(mSession);
             }
 
-            mMusicService.registerCallback(PlayerFragment.this);
+            mMusicService.registerCallback(FullScreenPlayerFragment.this);
             setOnPlayerStateChanged();
             onStateChanged(mMusicService.isPlaying());
 

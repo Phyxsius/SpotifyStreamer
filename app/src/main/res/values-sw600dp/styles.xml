@@ -5,7 +5,4 @@
         <item name="android:choiceMode">singleChoice</item>
     </style>
 
-    <style name="PlayerTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
-    </style>
-
 </resources>

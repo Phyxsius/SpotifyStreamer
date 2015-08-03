@@ -5,13 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <include android:id="@+id/toolbar"
+        layout="@layout/include_toolbar"/>
+
     <FrameLayout
         android:id="@+id/fragment_tracks"
         android:name="us.phyxsi.spotifystreamer.TracksFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context="us.phyxsi.spotifystreamer.TracksFragment"
-        tools:layout="@layout/fragment_list" />
+        tools:layout="@layout/fragment_list"
+        android:layout_below="@+id/toolbar" />
 
     <android.support.v7.widget.CardView
         android:id="@+id/controls_container"

@@ -1,11 +1,16 @@
 package us.phyxsi.spotifystreamer.ui;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,13 +21,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import us.phyxsi.spotifystreamer.BaseActivity;
+import us.phyxsi.spotifystreamer.MusicService;
 import us.phyxsi.spotifystreamer.R;
-import us.phyxsi.spotifystreamer.player.PlayerActivity;
+import us.phyxsi.spotifystreamer.player.FullScreenPlayerActivity;
+import us.phyxsi.spotifystreamer.player.PlayerSession;
 
 /**
  * A class that shows the Media Queue to the user.
  */
-public class PlaybackControlsFragment extends Fragment {
+public class PlaybackControlsFragment extends Fragment implements MusicService.OnStateChangeListener {
 
     private static final String TAG = PlaybackControlsFragment.class.getSimpleName();
 
@@ -33,23 +41,34 @@ public class PlaybackControlsFragment extends Fragment {
     private ImageView mAlbumArt;
     private String mArtUrl;
 
-    private final MediaController.Callback mCallback = new MediaController.Callback() {
-        @Override
-        public void onPlaybackStateChanged(PlaybackState state) {
-            Log.d(TAG, "Received playback state change to state " + state.getState());
-            PlaybackControlsFragment.this.onPlaybackStateChanged(state);
-        }
+    protected Intent serviceIntent;
+    private PlayerSession mSession;
+    private MusicService mMusicService;
+    private boolean serviceBound = false;
 
-        @Override
-        public void onMetadataChanged(MediaMetadata metadata) {
-            if (metadata == null) return;
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
 
-            Log.d(TAG, "Received metadata state change to mediaId=" +
-                    metadata.getDescription().getMediaId() +
-                    " song=" + metadata.getDescription().getTitle());
-            PlaybackControlsFragment.this.onMetadataChanged(metadata);
+        if (serviceIntent == null) {
+            serviceIntent = new Intent(activity, MusicService.class);
+            activity.bindService(serviceIntent, streamingConnection, Context.BIND_AUTO_CREATE);
         }
-    };
+    }
+
+    @Override
+    public void onDestroy() {
+        unbindService();
+        super.onDestroy();
+    }
+
+    public void unbindService() {
+        if (mMusicService != null) {
+            mMusicService.unregisterCallback(null);
+            getActivity().unbindService(streamingConnection);
+            mMusicService = null;
+        }
+    }
 
     @Nullable
     @Override
@@ -68,7 +87,7 @@ public class PlaybackControlsFragment extends Fragment {
         rootView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                Intent intent = new Intent(getActivity(), FullScreenPlayerActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 MediaMetadata metadata = getActivity().getMediaController().getMetadata();
 
@@ -87,10 +106,6 @@ public class PlaybackControlsFragment extends Fragment {
         super.onStart();
 
         Log.d(TAG, "fragment.onStart");
-
-        if (getActivity().getMediaController() != null) {
-            onConnected();
-        }
     }
 
     @Override
@@ -98,20 +113,6 @@ public class PlaybackControlsFragment extends Fragment {
         super.onStop();
 
         Log.d(TAG, "fragment.onStop");
-
-        if(getActivity().getMediaController() != null) {
-            getActivity().getMediaController().unregisterCallback(mCallback);
-        }
-    }
-
-    public void onConnected() {
-        MediaController controller = getActivity().getMediaController();
-        Log.d(TAG, "onConnected, mediaController==null?");
-        if (controller != null) {
-            onMetadataChanged(controller.getMetadata());
-            onPlaybackStateChanged(controller.getPlaybackState());
-            controller.registerCallback(mCallback);
-        }
     }
 
     private void onMetadataChanged(MediaMetadata metadata) {
@@ -225,4 +226,43 @@ public class PlaybackControlsFragment extends Fragment {
             controller.getTransportControls().pause();
         }
     }
+
+    @Override
+    public void onStateChanged(boolean isPlaying) {
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.showPlaybackControls();
+
+        Log.d(TAG, "On state changed");
+    }
+
+    private void setOnPlayerStateChanged() {
+        if (mMusicService != null) mMusicService.setOnStateChangeListener(this);
+    }
+
+    private ServiceConnection streamingConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "FullScreenPlayerFragment onServiceCreated called");
+            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
+
+            mMusicService = binder.getService();
+
+            PlayerSession serviceSession = mMusicService.getSession();
+            if (serviceSession != null && serviceSession.equals(mSession)) {
+                mSession = serviceSession;
+            } else {
+                mMusicService.setSession(mSession);
+            }
+
+            mMusicService.registerCallback((BaseActivity) getActivity());
+            setOnPlayerStateChanged();
+
+            serviceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
 }

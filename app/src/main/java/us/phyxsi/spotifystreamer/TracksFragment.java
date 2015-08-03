@@ -29,8 +29,8 @@ import kaaes.spotify.webapi.android.models.Track;
 import retrofit.RetrofitError;
 import us.phyxsi.spotifystreamer.object.ParcableArtist;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
-import us.phyxsi.spotifystreamer.player.PlayerActivity;
-import us.phyxsi.spotifystreamer.player.PlayerFragment;
+import us.phyxsi.spotifystreamer.player.FullScreenPlayerActivity;
+import us.phyxsi.spotifystreamer.player.FullScreenPlayerFragment;
 import us.phyxsi.spotifystreamer.player.PlayerSession;
 
 /**
@@ -124,15 +124,15 @@ public class TracksFragment extends Fragment implements ListView.OnItemClickList
             PlayerSession session = new PlayerSession(mArtist, mTracks, position);
 
             if (MainActivity.mIsLargeLayout) {
-                PlayerFragment fragment = new PlayerFragment();
+                FullScreenPlayerFragment fragment = new FullScreenPlayerFragment();
                 Bundle arguments = new Bundle();
 
-                arguments.putParcelable(PlayerActivity.PLAYER_SESSION, session);
+                arguments.putParcelable(FullScreenPlayerActivity.PLAYER_SESSION, session);
                 fragment.setArguments(arguments);
                 fragment.show(fragmentManager, "PLAYER");
             } else {
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra(PlayerActivity.PLAYER_SESSION, session);
+                Intent intent = new Intent(getActivity(), FullScreenPlayerActivity.class);
+                intent.putExtra(FullScreenPlayerActivity.PLAYER_SESSION, session);
 
                 startActivity(intent);
             }

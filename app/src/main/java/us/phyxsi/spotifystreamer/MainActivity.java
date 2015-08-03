@@ -26,6 +26,8 @@ public class MainActivity extends BaseActivity implements ArtistFragment.Callbac
 
         setContentView(R.layout.activity_main);
 
+        initializeToolbar(R.menu.menu_main);
+
         if (findViewById(R.id.tracks_container) != null) {
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()

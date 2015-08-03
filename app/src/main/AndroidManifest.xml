@@ -28,6 +28,7 @@
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
+
         <activity
             android:name=".TracksActivity"
             android:label="@string/top_ten_tracks"
@@ -35,6 +36,15 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="us.phyxsi.spotifystreamer.MainActivity" />
+        </activity>
+
+        <activity
+            android:name=".player.FullScreenPlayerActivity"
+            android:parentActivityName=".TracksActivity"
+            android:launchMode="singleTop">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".TracksActivity"/>
         </activity>
 
         <activity
@@ -52,15 +62,6 @@
             android:exported="true"
             tools:ignore="ExportedService">
         </service>
-
-        <activity
-            android:name=".player.PlayerActivity"
-            android:parentActivityName=".TracksActivity"
-            android:theme="@style/PlayerTheme">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".TracksActivity"/>
-        </activity>
     </application>
 
 </manifest>

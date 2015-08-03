@@ -18,11 +18,6 @@ public class TracksActivity extends BaseActivity {
 
         mArtist = getIntent().getParcelableExtra(TracksFragment.ARTIST);
 
-        if (mArtist != null) {
-            assert getSupportActionBar() != null;
-            getSupportActionBar().setSubtitle(mArtist.name);
-        }
-
         if (savedInstanceState == null) {
             Bundle arguments = new Bundle();
             arguments.putParcelable(TracksFragment.ARTIST, mArtist);
@@ -32,7 +27,21 @@ public class TracksActivity extends BaseActivity {
 
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_tracks, fragment)
+                    .addToBackStack(null)
                     .commit();
+        }
+
+        initializeToolbar(R.menu.menu_tracks);
+
+        if (mArtist != null) {
+            assert getSupportActionBar() != null;
+            getSupportActionBar().setSubtitle(mArtist.name);
+        }
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
         }
     }
 
