@@ -16,15 +16,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
-import us.phyxsi.spotifystreamer.player.FullScreenPlayerActivity;
 import us.phyxsi.spotifystreamer.player.PlayerSession;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
     private static final String TAG = MusicService.class.getSimpleName();
+    // The action of the incoming Intent indicating that it contains a command
+    // to be executed (see {@link #onStartCommand})
+    public static final String ACTION_CMD = "us.phyxi.spotifystreamer.ACTION_CMD";
+    // The key in the extras of the incoming Intent indicating the command that
+    // should be executed (see {@link #onStartCommand})
+    public static final String CMD_NAME = "CMD_NAME";
     private static final long PROGRESS_UPDATE_INTERNAL = 100;
-    public static final String ACTION_PLAY = "us.phyxi.spotifystreamer.action.PLAY";
 
     private final IBinder mMusicBinder = new MusicBinder();
     private MediaPlayer mPlayer;
@@ -55,8 +59,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public PlayerSession getSession(){
         return mSession;
     }
+    public MediaPlayer getPlayer() { return mPlayer; }
 
     public void setSession(PlayerSession session) {
+        if (mSession != null) {
+            stop();
+        }
+
         this.mSession = session;
 
         if (session == null || session.getPlaylistSize() == 0) {
@@ -94,12 +103,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
+            String command = intent.getStringExtra(CMD_NAME);
 
-            if (ACTION_PLAY.equals(action)) {
+            if (ACTION_CMD.equals(action)) {
                 if (mPlayer == null) initializePlayer();
                 else mPlayer.reset();
 
-                setSession((PlayerSession) intent.getParcelableExtra(FullScreenPlayerActivity.PLAYER_SESSION));
+//                setSession((PlayerSession) intent.getParcelableExtra(FullScreenPlayerActivity.PLAYER_SESSION));
             }
         }
 

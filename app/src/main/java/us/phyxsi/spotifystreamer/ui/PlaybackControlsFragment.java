@@ -3,7 +3,6 @@ package us.phyxsi.spotifystreamer.ui;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.MediaMetadata;
@@ -52,7 +51,7 @@ public class PlaybackControlsFragment extends Fragment implements MusicService.O
 
         if (serviceIntent == null) {
             serviceIntent = new Intent(activity, MusicService.class);
-            activity.bindService(serviceIntent, streamingConnection, Context.BIND_AUTO_CREATE);
+//            activity.bindService(serviceIntent, streamingConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -255,7 +254,7 @@ public class PlaybackControlsFragment extends Fragment implements MusicService.O
             }
 
             mMusicService.registerCallback((BaseActivity) getActivity());
-            setOnPlayerStateChanged();
+//            setOnPlayerStateChanged();
 
             serviceBound = true;
         }

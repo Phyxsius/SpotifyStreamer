@@ -69,7 +69,6 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
     private boolean isPlaying = (mMusicService != null);
     private boolean viewsAreCreated = false;
 
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "FullScreenPlayerFragment onCreate called");
@@ -86,8 +85,6 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
             this.mTrack = mSession.getCurrentTrack();
         }
     }
-
-
 
     @Nullable
     @Override
@@ -221,7 +218,7 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
         if (mPlayIntent == null) {
             Activity activity = getActivity();
             mPlayIntent = new Intent(activity, MusicService.class);
-            activity.startService(mPlayIntent);
+//            activity.startService(mPlayIntent);
             activity.bindService(mPlayIntent, streamingConnection, activity.BIND_AUTO_CREATE);
         }
     }

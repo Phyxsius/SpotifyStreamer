@@ -1,5 +1,6 @@
 package us.phyxsi.spotifystreamer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -45,10 +46,10 @@ public abstract class BaseActivity extends AppCompatActivity implements MusicSer
             throw new IllegalStateException("Mising fragment with id 'controls'. Cannot continue.");
         }
 
+        startService(new Intent(this, MusicService.class));
+
         hidePlaybackControls();
     }
-
-
 
     @Override
     protected void onStop() {
