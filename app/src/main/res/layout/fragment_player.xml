@@ -81,7 +81,8 @@
                 android:elevation="9dp"
                 android:padding="@dimen/zero"
                 android:progressBackgroundTint="@android:color/transparent"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset" />
+                android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
+                android:progressDrawable="@drawable/seekbar_progress" />
 
             <include
                 layout="@layout/player_controls"

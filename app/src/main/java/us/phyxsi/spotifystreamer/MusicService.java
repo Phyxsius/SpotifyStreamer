@@ -209,6 +209,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void seekTo(int position) {
+        if (mPlayer == null) return;
+
         mPlayer.seekTo(position);
     }
 

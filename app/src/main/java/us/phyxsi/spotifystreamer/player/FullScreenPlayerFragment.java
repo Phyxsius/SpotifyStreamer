@@ -5,6 +5,8 @@ import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -13,7 +15,6 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -43,6 +44,8 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
     // Palette colors
     private int palettePrimaryColor;
     private int paletteAccentColor;
+    private int titleTextColor;
+    private int bodyTextColor;
     private int primaryColor;
     private int accentColor;
 
@@ -76,6 +79,9 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
 
         primaryColor = palettePrimaryColor = getResources().getColor(R.color.primary);
         accentColor = paletteAccentColor = getResources().getColor(R.color.accent);
+        titleTextColor = getResources().getColor(R.color.title_text);
+        bodyTextColor = getResources().getColor(R.color.body_text);
+
 
         Bundle arguments = getArguments();
         if (arguments != null && arguments.containsKey(FullScreenPlayerActivity.PLAYER_SESSION)) {
@@ -108,19 +114,20 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
         mPlayDrawable = getActivity().getDrawable(R.drawable.ic_play_arrow_white_48dp);
 
         // Toolbar
+        mToolbar.setTitle(getString(R.string.now_playing));
+        mToolbar.setNavigationIcon(R.drawable.abc_ic_clear_mtrl_alpha);
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                getDialog().dismiss();
                 unbindService();
             }
         });
 
-        mToolbar.setTitle(getString(R.string.now_playing));
-
-        if (getActivity() != null && getActivity() instanceof AppCompatActivity) {
-            AppCompatActivity activity = (AppCompatActivity) getActivity();
-            activity.setSupportActionBar(mToolbar);
+        if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity) {
+            FullScreenPlayerActivity activity = (FullScreenPlayerActivity) getActivity();
             mToolbar.inflateMenu(R.menu.menu_player);
+            activity.setSupportActionBar(mToolbar);
         }
 
         // Music control buttons
@@ -254,23 +261,31 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
     }
 
     private void fetchImageAsync() {
-        mAlbumImage.getViewTreeObserver()
-                   .addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-                       @Override
-                       public void onGlobalLayout() {
-                           Picasso.with(getActivity())
-                                   .load(mSession.getCurrentTrack().imageUrl)
-                                   .resize(mAlbumImage.getWidth(), mAlbumImage.getHeight())
-                                   .centerCrop()
-                                   .into(mAlbumImage, FullScreenPlayerFragment.this);
+        if (mAlbumImage.getWidth() == 0 && mAlbumImage.getHeight() == 0) {
+            mAlbumImage.getViewTreeObserver()
+                    .addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            loadImage();
 
-                           if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                               mAlbumImage.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                           } else {
-                               mAlbumImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                           }
-                       }
-                   });
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                                mAlbumImage.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                            } else {
+                                mAlbumImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                            }
+                        }
+                    });
+        } else {
+            loadImage();
+        }
+    }
+
+    private void loadImage() {
+        Picasso.with(getActivity())
+                .load(mSession.getCurrentTrack().imageUrl)
+                .resize(mAlbumImage.getWidth(), mAlbumImage.getHeight())
+                .centerCrop()
+                .into(mAlbumImage, FullScreenPlayerFragment.this);
     }
 
     // Palette overrides
@@ -290,18 +305,29 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
             paletteAccentColor = palette.getLightVibrantColor(accentColor);
         }
 
+        if (primarySwatch != null) {
+            titleTextColor = primarySwatch.getTitleTextColor();
+            bodyTextColor = primarySwatch.getBodyTextColor();
+        }
+
         mLine1.setBackgroundColor(palettePrimaryColor);
-        mLine1.setTextColor(primarySwatch.getTitleTextColor());
+        mLine1.setTextColor(titleTextColor);
         mLine2.setBackgroundColor(palettePrimaryColor);
-        mLine2.setTextColor(primarySwatch.getBodyTextColor());
+        mLine2.setTextColor(bodyTextColor);
 
-        mControls.setBackgroundColor(paletteAccentColor);
+        mControls.setBackgroundColor(palette.getMutedColor(primaryColor));
 
-        if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity &&
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = getActivity().getWindow();
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(paletteAccentColor);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Seekbar color
+            mSeekbar.getProgressDrawable().setColorFilter(new PorterDuffColorFilter(paletteAccentColor, PorterDuff.Mode.MULTIPLY));
+            mSeekbar.getThumb().setTint(paletteAccentColor);
+
+            // Status bar color
+            if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity) {
+                Window window = getActivity().getWindow();
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                window.setStatusBarColor(paletteAccentColor);
+            }
         }
     }
 
