@@ -27,7 +27,6 @@ public class TracksActivity extends BaseActivity {
 
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_tracks, fragment)
-                    .addToBackStack(null)
                     .commit();
         }
 

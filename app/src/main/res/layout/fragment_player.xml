@@ -65,30 +65,10 @@
                 android:gravity="top|left" />
         </LinearLayout>
 
-        <LinearLayout
+        <include
+            layout="@layout/player_controls"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@android:color/transparent"
-            android:layout_marginTop="@dimen/player_seekbar_margin_offset">
-
-            <SeekBar
-                android:id="@+id/player_seekbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:progress="1"
-                android:elevation="9dp"
-                android:padding="@dimen/zero"
-                android:progressBackgroundTint="@android:color/transparent"
-                android:layout_marginBottom="@dimen/player_seekbar_margin_offset"
-                android:progressDrawable="@drawable/seekbar_progress" />
-
-            <include
-                layout="@layout/player_controls"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </LinearLayout>
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
 </RelativeLayout>

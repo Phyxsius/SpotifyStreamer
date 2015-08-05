@@ -101,6 +101,8 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
         // Initialize views
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mAlbumImage = (ImageView) view.findViewById(R.id.player_album_image);
+        mStart = (TextView) view.findViewById(R.id.startText);
+        mEnd = (TextView) view.findViewById(R.id.endText);
         mLine2 = (TextView) view.findViewById(R.id.player_track_title);
         mLine1 = (TextView) view.findViewById(R.id.player_artist_name);
         mControls = (LinearLayout) view.findViewById(R.id.player_control_layout);
@@ -245,14 +247,16 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
             mLine2.setText(track.artist);
             fetchImageAsync();
 
-            mSeekbar.setMax(track.getDurationInMilli());
+            int duration = track.getDurationInMilli();
+            mSeekbar.setMax(duration);
+            mEnd.setText(formatMillis(duration));
         }
     }
 
 
     // Seekbar functions
     public void seekTo(int position, boolean userInitiated) {
-//        mStart.setText(formatMillis(position));
+        mStart.setText(formatMillis(position));
         if (userInitiated && mMusicService != null) mMusicService.seekTo(position);
     }
 
@@ -320,13 +324,13 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // Seekbar color
             mSeekbar.getProgressDrawable().setColorFilter(new PorterDuffColorFilter(paletteAccentColor, PorterDuff.Mode.MULTIPLY));
-            mSeekbar.getThumb().setTint(paletteAccentColor);
+            mSeekbar.getThumb().mutate().setAlpha(0);
 
             // Status bar color
             if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity) {
                 Window window = getActivity().getWindow();
                 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                window.setStatusBarColor(paletteAccentColor);
+                window.setStatusBarColor(palette.getMutedColor(primaryColor));
             }
         }
     }
