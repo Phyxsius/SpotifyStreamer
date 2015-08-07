@@ -1,12 +1,9 @@
-package us.phyxsi.spotifystreamer.player;
+package us.phyxsi.spotifystreamer.object;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
-
-import us.phyxsi.spotifystreamer.object.ParcableArtist;
-import us.phyxsi.spotifystreamer.object.ParcableTrack;
 
 /**
  * A class that implements media playback using {@link android.media.MediaPlayer}

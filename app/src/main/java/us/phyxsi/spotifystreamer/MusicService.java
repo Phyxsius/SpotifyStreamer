@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
-import us.phyxsi.spotifystreamer.player.PlayerSession;
+import us.phyxsi.spotifystreamer.object.PlayerSession;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {

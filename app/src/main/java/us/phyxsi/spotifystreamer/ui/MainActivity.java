@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.ui;
 
 import android.app.SearchManager;
 import android.content.Context;
@@ -10,6 +10,8 @@ import android.view.MenuItem;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import us.phyxsi.spotifystreamer.MusicService;
+import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableArtist;
 import us.phyxsi.spotifystreamer.utils.NetworkHelper;
 
@@ -35,6 +37,8 @@ public class MainActivity extends BaseActivity implements ArtistFragment.Callbac
                         .commit();
             }
         }
+
+        startService(new Intent(this, MusicService.class));
     }
 
     @Override

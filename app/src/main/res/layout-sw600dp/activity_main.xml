@@ -15,7 +15,7 @@
         android:baselineAligned="false"
         android:divider="?android:attr/dividerHorizontal"
         android:orientation="horizontal"
-        tools:context="us.phyxsi.spotifystreamer.MainActivity"
+        tools:context="us.phyxsi.spotifystreamer.ui.MainActivity"
         android:layout_below="@+id/toolbar">
 
         <!--
@@ -24,7 +24,7 @@
 
         <fragment
             android:id="@+id/fragment_artist"
-            android:name="us.phyxsi.spotifystreamer.ArtistFragment"
+            android:name="us.phyxsi.spotifystreamer.ui.ArtistFragment"
             android:layout_width="@dimen/zero"
             android:layout_height="match_parent"
             android:layout_weight="2"

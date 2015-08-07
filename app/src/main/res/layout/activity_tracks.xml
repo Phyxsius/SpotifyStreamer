@@ -13,7 +13,7 @@
         android:name="us.phyxsi.spotifystreamer.TracksFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="us.phyxsi.spotifystreamer.TracksFragment"
+        tools:context="us.phyxsi.spotifystreamer.ui.TracksFragment"
         tools:layout="@layout/fragment_list"
         android:layout_below="@+id/toolbar" />
 

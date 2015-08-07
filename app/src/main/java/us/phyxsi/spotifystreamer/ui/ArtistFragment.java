@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.ui;
 
 import android.app.Fragment;
 import android.os.AsyncTask;
@@ -21,7 +21,9 @@ import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import retrofit.RetrofitError;
+import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableArtist;
+import us.phyxsi.spotifystreamer.utils.ArtistAdapter;
 
 /**
  * A fragment representing a list of Items.

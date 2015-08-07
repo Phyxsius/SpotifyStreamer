@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.utils;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -14,6 +14,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
 
 public class TrackAdapter extends ArrayAdapter<ParcableTrack> {

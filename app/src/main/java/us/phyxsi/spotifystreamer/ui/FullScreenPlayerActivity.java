@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer.player;
+package us.phyxsi.spotifystreamer.ui;
 
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -7,9 +7,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import us.phyxsi.spotifystreamer.BaseActivity;
 import us.phyxsi.spotifystreamer.R;
-import us.phyxsi.spotifystreamer.SettingsActivity;
 
 public class FullScreenPlayerActivity extends BaseActivity {
     public static final String PLAYER_SESSION = "us.phyxsi.spotifystreamer.PLAYER_SESSION";

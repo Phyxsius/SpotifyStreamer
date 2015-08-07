@@ -1,24 +1,26 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
-import us.phyxsi.spotifystreamer.object.ParcableTrack;
-import us.phyxsi.spotifystreamer.ui.PlaybackControlsFragment;
+import us.phyxsi.spotifystreamer.MusicService;
+import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.utils.NetworkHelper;
 
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BaseActivity extends AppCompatActivity implements MusicService.MusicServiceCallback {
+public abstract class BaseActivity extends AppCompatActivity {
 
     private static final String TAG = BaseActivity.class.getSimpleName();
 
     private Toolbar mToolbar;
     private PlaybackControlsFragment mControlsFragment;
+    private Intent serviceIntent;
 
     public static boolean mIsLargeLayout;
 
@@ -46,18 +48,24 @@ public abstract class BaseActivity extends AppCompatActivity implements MusicSer
             throw new IllegalStateException("Mising fragment with id 'controls'. Cannot continue.");
         }
 
-        startService(new Intent(this, MusicService.class));
-
         hidePlaybackControls();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "Activity onStop");
+    protected void onResume() {
+        super.onResume();
+
+        if (serviceIntent == null) {
+            serviceIntent = new Intent(this, MusicService.class);
+            bindService(serviceIntent, mControlsFragment.streamingConnection, Context.BIND_AUTO_CREATE);
+        } else {
+            mControlsFragment.setSession();
+        }
+
+        if (mControlsFragment.shouldShowControls()) showPlaybackControls();
     }
 
-    public void showPlaybackControls() {
+    protected void showPlaybackControls() {
         Log.d(TAG, "showPlaybackControls");
         if (NetworkHelper.isOnline(this)) {
             getFragmentManager().beginTransaction()
@@ -92,22 +100,5 @@ public abstract class BaseActivity extends AppCompatActivity implements MusicSer
             getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);
             getSupportActionBar().setHomeButtonEnabled(!isRoot);
         }
-    }
-
-
-
-    @Override
-    public void onProgressChange(int progress) {
-
-    }
-
-    @Override
-    public void onTrackChanged(ParcableTrack track) {
-
-    }
-
-    @Override
-    public void onPlaybackStopped() {
-
     }
 }

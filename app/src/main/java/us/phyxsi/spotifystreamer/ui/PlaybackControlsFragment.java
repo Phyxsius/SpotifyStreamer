@@ -5,12 +5,12 @@ import android.app.Fragment;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.media.MediaMetadata;
-import android.media.session.MediaController;
-import android.media.session.PlaybackState;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,41 +18,108 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import us.phyxsi.spotifystreamer.BaseActivity;
+import com.squareup.picasso.Picasso;
+
 import us.phyxsi.spotifystreamer.MusicService;
 import us.phyxsi.spotifystreamer.R;
-import us.phyxsi.spotifystreamer.player.FullScreenPlayerActivity;
-import us.phyxsi.spotifystreamer.player.PlayerSession;
+import us.phyxsi.spotifystreamer.object.ParcableTrack;
+import us.phyxsi.spotifystreamer.object.PlayerSession;
 
 /**
  * A class that shows the Media Queue to the user.
  */
-public class PlaybackControlsFragment extends Fragment implements MusicService.OnStateChangeListener {
+public class PlaybackControlsFragment extends Fragment implements
+        MusicService.MusicServiceCallback, MusicService.OnStateChangeListener {
 
     private static final String TAG = PlaybackControlsFragment.class.getSimpleName();
+
+    private BaseActivity activity;
 
     private ImageButton mPlayPause;
     private TextView mTitle;
     private TextView mSubtitle;
     private TextView mExtraInfo;
     private ImageView mAlbumArt;
+    private Drawable mPauseDrawable;
+    private Drawable mPlayDrawable;
     private String mArtUrl;
 
-    protected Intent serviceIntent;
     private PlayerSession mSession;
     private MusicService mMusicService;
-    private boolean serviceBound = false;
+    private boolean serviceBound;
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        if (serviceIntent == null) {
-            serviceIntent = new Intent(activity, MusicService.class);
-//            activity.bindService(serviceIntent, streamingConnection, Context.BIND_AUTO_CREATE);
-        }
+        this.activity = (BaseActivity) activity;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_playback_controls, container, false);
+
+        mPlayPause = (ImageButton) rootView.findViewById(R.id.play_pause);
+        mPlayPause.setEnabled(true);
+        mPlayPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mMusicService != null) mMusicService.togglePlay();
+
+                mPlayPause.setImageDrawable((mMusicService.isPlaying()) ? mPauseDrawable : mPlayDrawable);
+            }
+        });
+
+        mPauseDrawable = getActivity().getDrawable(R.drawable.ic_pause_white_36dp);
+        mPlayDrawable = getActivity().getDrawable(R.drawable.ic_play_arrow_white_36dp);
+
+        mTitle = (TextView) rootView.findViewById(R.id.title);
+        mSubtitle = (TextView) rootView.findViewById(R.id.artist);
+        mExtraInfo = (TextView) rootView.findViewById(R.id.extra_info);
+        mAlbumArt = (ImageView) rootView.findViewById(R.id.album_art);
+
+        rootView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                FragmentManager fragmentManager =
+                        ((FragmentActivity) getActivity()).getSupportFragmentManager();
+
+                if (MainActivity.mIsLargeLayout) {
+                    FullScreenPlayerFragment fragment = new FullScreenPlayerFragment();
+                    Bundle arguments = new Bundle();
+
+                    arguments.putParcelable(FullScreenPlayerActivity.PLAYER_SESSION, mSession);
+                    fragment.setArguments(arguments);
+                    fragment.show(fragmentManager, "PLAYER");
+                } else {
+                    Intent intent = new Intent(getActivity(), FullScreenPlayerActivity.class);
+                    intent.putExtra(FullScreenPlayerActivity.PLAYER_SESSION, mSession);
+
+                    startActivity(intent);
+                }
+            }
+        });
+
+        setViewsInfo();
+
+        return rootView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        Log.d(TAG, "fragment.onStart");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        setViewsInfo();
     }
 
     @Override
@@ -69,192 +136,73 @@ public class PlaybackControlsFragment extends Fragment implements MusicService.O
         }
     }
 
-    @Nullable
+    public void setViewsInfo() {
+        if (mSession == null) return;
+
+        setViewsInfo(mSession.getCurrentTrack());
+    }
+
+    private void setViewsInfo(ParcableTrack track) {
+        if (mSession == null) return;
+
+        mTitle.setText(track.name);
+        mSubtitle.setText(track.artist);
+        Picasso.with(getActivity())
+                .load(mSession.getCurrentTrack().imageUrl)
+                .into(mAlbumArt);
+    }
+
+    // MusicService callback overrides
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_playback_controls, container, false);
-
-        mPlayPause = (ImageButton) rootView.findViewById(R.id.play_pause);
-        mPlayPause.setEnabled(true);
-        mPlayPause.setOnClickListener(mButtonListener);
-
-        mTitle = (TextView) rootView.findViewById(R.id.title);
-        mSubtitle = (TextView) rootView.findViewById(R.id.artist);
-        mExtraInfo = (TextView) rootView.findViewById(R.id.extra_info);
-        mAlbumArt = (ImageView) rootView.findViewById(R.id.album_art);
-
-        rootView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), FullScreenPlayerActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                MediaMetadata metadata = getActivity().getMediaController().getMetadata();
-
-                if (metadata != null) {
-//                    intent.putExtra()
-                }
-                startActivity(intent);
-            }
-        });
-
-        return rootView;
+    public void onProgressChange(int progress) {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-
-        Log.d(TAG, "fragment.onStart");
+    public void onTrackChanged(ParcableTrack track) {
+        setViewsInfo(track);
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-
-        Log.d(TAG, "fragment.onStop");
-    }
-
-    private void onMetadataChanged(MediaMetadata metadata) {
-        Log.d(TAG, "onMetadataChanged " + metadata);
-        if (getActivity() == null) {
-            Log.w(TAG, "onMetadataChanged called when getActivity null," +
-                    "this should not happen if the callback was properly unregistered. Ignoring.");
-            return;
-        }
-        if (metadata == null) {
-            return;
-        }
-
-        mTitle.setText(metadata.getDescription().getTitle());
-        mSubtitle.setText(metadata.getDescription().getSubtitle());
-        String artUrl = null;
-        if (metadata.getDescription().getIconUri() != null) {
-            artUrl = metadata.getDescription().getIconUri().toString();
-        }
-//        if (!TextUtils.equals(artUrl, mArtUrl)) {
-//            mArtUrl = artUrl;
-//            Bitmap art = metadata.getDescription().getIconBitmap();
-//            AlbumArtCache cache = AlbumArtCache.getInstance();
-//            if (art == null) {
-//                art = cache.getIconImage(mArtUrl);
-//            }
-//            if (art != null) {
-//                mAlbumArt.setImageBitmap(art);
-//            } else {
-//                cache.fetch(artUrl, new AlbumArtCache.FetchListener() {
-//                            @Override
-//                            public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-//                                if (icon != null) {
-////                                    LogHelper.d(TAG, "album art icon of w=", icon.getWidth(),
-////                                            " h=", icon.getHeight());
-//                                    if (isAdded()) {
-//                                        mAlbumArt.setImageBitmap(icon);
-//                                    }
-//                                }
-//                            }
-//                        }
-//                );
-//            }
-//        }
-    }
-
-    private void onPlaybackStateChanged(PlaybackState state) {
-        Log.d(TAG, "onPlaybackStateChanged " + state);
-        if (getActivity() == null) {
-            Log.w(TAG, "onPlaybackStateChanged called when getActivity null," +
-                    "this should not happen if the callback was properly unregistered. Ignoring.");
-            return;
-        }
-        if (state == null) {
-            return;
-        }
-        boolean enablePlay = false;
-        switch (state.getState()) {
-            case PlaybackState.STATE_PAUSED:
-            case PlaybackState.STATE_STOPPED:
-                enablePlay = true;
-                break;
-            case PlaybackState.STATE_ERROR:
-                Log.e(TAG, "error playbackstate: " + state.getErrorMessage());
-                Toast.makeText(getActivity(), state.getErrorMessage(), Toast.LENGTH_LONG).show();
-                break;
-        }
-
-        if (enablePlay) {
-            mPlayPause.setImageDrawable(
-                    getActivity().getDrawable(R.drawable.ic_play_arrow_white_36dp));
-        } else {
-            mPlayPause.setImageDrawable(getActivity().getDrawable(R.drawable.ic_pause_white_36dp));
-        }
-    }
-
-    private final View.OnClickListener mButtonListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            PlaybackState stateObj = getActivity().getMediaController().getPlaybackState();
-            final int state = stateObj == null ?
-                    PlaybackState.STATE_NONE : stateObj.getState();
-            Log.d(TAG, "Button pressed, in state " + state);
-            switch (v.getId()) {
-                case R.id.play_pause:
-                    Log.d(TAG, "Play button pressed, in state " + state);
-                    if (state == PlaybackState.STATE_PAUSED ||
-                            state == PlaybackState.STATE_STOPPED ||
-                            state == PlaybackState.STATE_NONE) {
-                        playMedia();
-                    } else if (state == PlaybackState.STATE_PLAYING ||
-                            state == PlaybackState.STATE_BUFFERING ||
-                            state == PlaybackState.STATE_CONNECTING) {
-                        pauseMedia();
-                    }
-                    break;
-            }
-        }
-    };
-
-    private void playMedia() {
-        MediaController controller = getActivity().getMediaController();
-        if (controller != null) {
-            controller.getTransportControls().play();
-        }
-    }
-
-    private void pauseMedia() {
-        MediaController controller = getActivity().getMediaController();
-        if (controller != null) {
-            controller.getTransportControls().pause();
-        }
+    public void onPlaybackStopped() {
+        mPlayPause.setImageDrawable(mPlayDrawable);
     }
 
     @Override
     public void onStateChanged(boolean isPlaying) {
         BaseActivity activity = (BaseActivity) getActivity();
-        activity.showPlaybackControls();
 
-        Log.d(TAG, "On state changed");
+        mPlayPause.setImageDrawable((isPlaying) ? mPauseDrawable : mPlayDrawable);
     }
 
-    private void setOnPlayerStateChanged() {
+    public boolean shouldShowControls() {
+        if (mMusicService == null || mSession == null || mSession.getCurrentTrack() == null)
+            return false;
+
+        return true;
+    }
+
+    protected void setSession() {
+        mSession = mMusicService.getSession();
+
         if (mMusicService != null) mMusicService.setOnStateChangeListener(this);
+
+        onStateChanged(mMusicService.isPlaying());
     }
 
-    private ServiceConnection streamingConnection = new ServiceConnection() {
+    public ServiceConnection streamingConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "FullScreenPlayerFragment onServiceCreated called");
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
 
             mMusicService = binder.getService();
 
-            PlayerSession serviceSession = mMusicService.getSession();
-            if (serviceSession != null && serviceSession.equals(mSession)) {
-                mSession = serviceSession;
-            } else {
-                mMusicService.setSession(mSession);
-            }
+            setSession();
+            mMusicService.registerCallback(PlaybackControlsFragment.this);
 
-            mMusicService.registerCallback((BaseActivity) getActivity());
-//            setOnPlayerStateChanged();
+            setViewsInfo();
+
+            // Show controls if something is playing or paused
+            if (shouldShowControls()) ((BaseActivity) getActivity()).showPlaybackControls();
 
             serviceBound = true;
         }

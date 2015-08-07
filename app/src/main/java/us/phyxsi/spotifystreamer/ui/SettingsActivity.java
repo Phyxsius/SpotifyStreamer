@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.ui;
 
 import android.content.Context;
 import android.content.res.Configuration;
@@ -11,6 +11,8 @@ import android.preference.PreferenceManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import us.phyxsi.spotifystreamer.R;
 
 
 /**

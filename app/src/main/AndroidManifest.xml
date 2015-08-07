@@ -15,7 +15,7 @@
         android:label="@string/app_name"
         android:theme="@style/SpotifyStreamer" >
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop">
             <intent-filter>
@@ -30,31 +30,31 @@
         </activity>
 
         <activity
-            android:name=".TracksActivity"
+            android:name=".ui.TracksActivity"
             android:label="@string/top_ten_tracks"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".ui.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="us.phyxsi.spotifystreamer.MainActivity" />
+                android:value=".ui.MainActivity" />
         </activity>
 
         <activity
-            android:name=".player.FullScreenPlayerActivity"
-            android:parentActivityName=".TracksActivity"
+            android:name=".ui.FullScreenPlayerActivity"
+            android:parentActivityName=".ui.TracksActivity"
             android:launchMode="singleTop">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".TracksActivity"/>
+                android:value=".ui.TracksActivity"/>
         </activity>
 
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.SettingsActivity"
             android:label="@string/action_settings"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".ui.MainActivity"
             android:theme="@style/SettingsTheme" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="us.phyxsi.spotifystreamer.MainActivity" />
+                android:value=".ui.MainActivity" />
         </activity>
 
         <service

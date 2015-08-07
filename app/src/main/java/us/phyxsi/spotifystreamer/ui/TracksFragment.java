@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer;
+package us.phyxsi.spotifystreamer.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,11 +27,11 @@ import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
 import retrofit.RetrofitError;
+import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableArtist;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
-import us.phyxsi.spotifystreamer.player.FullScreenPlayerActivity;
-import us.phyxsi.spotifystreamer.player.FullScreenPlayerFragment;
-import us.phyxsi.spotifystreamer.player.PlayerSession;
+import us.phyxsi.spotifystreamer.object.PlayerSession;
+import us.phyxsi.spotifystreamer.utils.TrackAdapter;
 
 /**
  * A placeholder fragment containing a simple view.

@@ -1,4 +1,4 @@
-package us.phyxsi.spotifystreamer.player;
+package us.phyxsi.spotifystreamer.ui;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -33,6 +33,7 @@ import com.squareup.picasso.Picasso;
 import us.phyxsi.spotifystreamer.MusicService;
 import us.phyxsi.spotifystreamer.R;
 import us.phyxsi.spotifystreamer.object.ParcableTrack;
+import us.phyxsi.spotifystreamer.object.PlayerSession;
 
 import static android.view.ViewTreeObserver.OnGlobalLayoutListener;
 

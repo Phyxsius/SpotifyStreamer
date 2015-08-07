@@ -11,10 +11,10 @@
 
     <fragment
         android:id="@+id/fragment_artist"
-        android:name="us.phyxsi.spotifystreamer.ArtistFragment"
+        android:name="us.phyxsi.spotifystreamer.ui.ArtistFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="us.phyxsi.spotifystreamer.ArtistFragment"
+        tools:context="us.phyxsi.spotifystreamer.ui.ArtistFragment"
         tools:layout="@layout/fragment_list"
         android:layout_below="@+id/toolbar" />
 
