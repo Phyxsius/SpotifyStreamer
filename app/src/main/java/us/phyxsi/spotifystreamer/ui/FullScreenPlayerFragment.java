@@ -123,6 +123,7 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
             @Override
             public void onClick(View v) {
                 getDialog().dismiss();
+                showControlsFromDialogClose();
                 unbindService();
             }
         });
@@ -192,6 +193,10 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
 
         unbindService();
 
+        if (MainActivity.mIsLargeLayout) {
+            showControlsFromDialogClose();
+        }
+
         super.onDestroyView();
     }
 
@@ -254,6 +259,13 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
         }
     }
 
+    private void showControlsFromDialogClose() {
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.setSession();
+        activity.getmControlsFragment().setViewsInfo();
+        activity.showPlaybackControls();
+    }
+
 
     // Seekbar functions
     public void seekTo(int position, boolean userInitiated) {
@@ -297,14 +309,12 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
     @Override
     public void onGenerated(Palette palette) {
         Palette.Swatch primarySwatch = palette.getDarkMutedSwatch();
-        Palette.Swatch accentSwatch = palette.getVibrantSwatch();
 
         palettePrimaryColor = palette.getDarkMutedColor(primaryColor);
         paletteAccentColor = palette.getVibrantColor(accentColor);
 
         if (palettePrimaryColor == primaryColor) {
             primarySwatch = palette.getMutedSwatch();
-            accentSwatch = palette.getLightVibrantSwatch();
 
             palettePrimaryColor = palette.getMutedColor(primaryColor);
             paletteAccentColor = palette.getLightVibrantColor(accentColor);

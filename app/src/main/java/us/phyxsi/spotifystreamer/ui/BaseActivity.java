@@ -28,6 +28,10 @@ public abstract class BaseActivity extends AppCompatActivity {
         return mIsLargeLayout;
     }
 
+    public PlaybackControlsFragment getmControlsFragment() {
+        return mControlsFragment;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,10 +63,14 @@ public abstract class BaseActivity extends AppCompatActivity {
             serviceIntent = new Intent(this, MusicService.class);
             bindService(serviceIntent, mControlsFragment.streamingConnection, Context.BIND_AUTO_CREATE);
         } else {
-            mControlsFragment.setSession();
+            setSession();
         }
 
         if (mControlsFragment.shouldShowControls()) showPlaybackControls();
+    }
+
+    protected void setSession() {
+        mControlsFragment.setSession();
     }
 
     protected void showPlaybackControls() {
