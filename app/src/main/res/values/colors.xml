@@ -3,4 +3,6 @@
     <item name="primary" type="color">#FF4CAF50</item>
     <item name="primary_dark" type="color">#FF388E3C</item>
     <item name="accent" type="color">#FFFF8A80</item>
+    <item name="title_text" type="color">#ffffffff</item>
+    <item name="body_text" type="color">#8cffffff</item>
 </resources>

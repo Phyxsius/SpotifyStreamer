@@ -1,0 +1,19 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <SwitchPreference
+        android:key="@string/pref_notifications_key"
+        android:title="@string/pref_title_notifications"
+        android:defaultValue="true"
+        android:summaryOff="@string/pref_enable_notifications_off"
+        android:summaryOn="@string/pref_enable_notifications_on"/>
+
+    <ListPreference
+        android:key="@string/pref_country_code_key"
+        android:title="@string/pref_title_country_code"
+        android:defaultValue="@string/pref_country_code"
+        android:entries="@array/pref_county_code_options"
+        android:entryValues="@array/pref_county_code_values" />
+
+</PreferenceScreen>

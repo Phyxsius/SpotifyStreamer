@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/player_control_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:layout_gravity="bottom"
+    android:orientation="vertical"
+    android:background="@color/primary">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp">
+
+        <TextView
+            android:id="@+id/startText"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginStart="@dimen/text_view_margin"
+            android:layout_alignParentStart="true"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:textColor="@android:color/white" />
+
+        <SeekBar
+            android:id="@+id/player_seekbar"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center"
+            android:progressDrawable="@drawable/seekbar_progress"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_toStartOf="@+id/endText"
+            android:layout_toEndOf="@+id/startText" />
+
+        <TextView
+            android:id="@+id/endText"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_marginEnd="@dimen/end_text_margin"
+            android:layout_alignParentEnd="true"
+            android:gravity="center_vertical"
+            android:layout_alignWithParentIfMissing="true"
+            android:maxLines="1"
+            android:textColor="@android:color/white" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/playback_controls"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/player_playback_controls_padding"
+        android:paddingRight="@dimen/player_playback_controls_padding"
+        android:paddingBottom="@dimen/player_playback_controls_padding">
+
+        <ImageView
+            android:id="@+id/player_control_prev"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_skip_previous_white_48dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
+            android:clickable="true"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark"
+            />
+
+        <ImageView
+            android:id="@+id/player_control_play_pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_play_arrow_white_48dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
+            android:clickable="true"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark"
+            />
+
+        <ImageView
+            android:id="@+id/player_control_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_skip_next_white_48dp"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
+            android:clickable="true"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark"
+            />
+    </LinearLayout>
+</LinearLayout>

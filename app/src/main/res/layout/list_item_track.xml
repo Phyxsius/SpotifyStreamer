@@ -24,9 +24,10 @@
 
     <LinearLayout
         android:layout_height="fill_parent"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/zero"
         android:layout_weight="7"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingRight="@dimen/content_area_separation">
 
         <TextView
             android:id="@+id/list_item_track"

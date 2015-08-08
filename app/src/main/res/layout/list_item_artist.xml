@@ -6,7 +6,8 @@
     android:gravity="center_vertical"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:orientation="horizontal"
-    android:baselineAligned="false">
+    android:baselineAligned="false"
+    android:background="@drawable/touch_selector">
 
     <FrameLayout
         android:layout_width="@dimen/list_item_icon_width"
@@ -24,7 +25,7 @@
 
     <LinearLayout
         android:layout_height="fill_parent"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/zero"
         android:layout_weight="7"
         android:orientation="vertical"
         android:gravity="center_vertical">
@@ -36,6 +37,7 @@
             android:textSize="16sp"
             android:paddingTop="@dimen/list_item_padding_top"
             android:paddingBottom="@dimen/list_item_padding_bottom"
+            android:paddingRight="@dimen/content_area_separation"
             android:ellipsize="end" />
     </LinearLayout>
 </LinearLayout>
