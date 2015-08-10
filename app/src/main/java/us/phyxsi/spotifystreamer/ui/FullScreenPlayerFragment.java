@@ -3,6 +3,7 @@ package us.phyxsi.spotifystreamer.ui;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.PorterDuff;
@@ -15,10 +16,15 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -38,7 +44,8 @@ import us.phyxsi.spotifystreamer.object.PlayerSession;
 import static android.view.ViewTreeObserver.OnGlobalLayoutListener;
 
 public class FullScreenPlayerFragment extends DialogFragment implements com.squareup.picasso.Callback,
-        Palette.PaletteAsyncListener, MusicService.MusicServiceCallback, MusicService.OnStateChangeListener {
+        Palette.PaletteAsyncListener, MusicService.MusicServiceCallback,
+        MusicService.OnStateChangeListener {
 
     private static final String TAG = FullScreenPlayerFragment.class.getSimpleName();
 
@@ -65,6 +72,9 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
     private Drawable mPauseDrawable;
     private Drawable mPlayDrawable;
 
+    // Sharing
+    private ShareActionProvider mShareActionProvider;
+
     private PlayerSession mSession;
     private MusicService mMusicService;
     private Intent mPlayIntent;
@@ -72,6 +82,10 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
     private boolean serviceBound = false;
     private boolean isPlaying = (mMusicService != null);
     private boolean viewsAreCreated = false;
+
+    public FullScreenPlayerFragment() {
+        setHasOptionsMenu(true);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -115,24 +129,6 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
 
         mPauseDrawable = getActivity().getDrawable(R.drawable.ic_pause_white_48dp);
         mPlayDrawable = getActivity().getDrawable(R.drawable.ic_play_arrow_white_48dp);
-
-        // Toolbar
-        mToolbar.setTitle(getString(R.string.now_playing));
-        mToolbar.setNavigationIcon(R.drawable.abc_ic_clear_mtrl_alpha);
-        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getDialog().dismiss();
-                showControlsFromDialogClose();
-                unbindService();
-            }
-        });
-
-        if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity) {
-            FullScreenPlayerActivity activity = (FullScreenPlayerActivity) getActivity();
-            mToolbar.inflateMenu(R.menu.menu_player);
-            activity.setSupportActionBar(mToolbar);
-        }
 
         // Music control buttons
         mSkipNext.setOnClickListener(new View.OnClickListener() {
@@ -187,17 +183,95 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Toolbar
+        mToolbar.setTitle(getString(R.string.now_playing));
+        mToolbar.inflateMenu(R.menu.menu_player);
+        mToolbar.setNavigationIcon(R.drawable.abc_ic_clear_mtrl_alpha);
+
+        // Close/back button
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getDialog().dismiss();
+                showControlsFromDialogClose();
+                unbindService();
+            }
+        });
+
+        // Settings menu
+        mToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                // Handle action bar item clicks here. The action bar will
+                // automatically handle clicks on the Home/Up button, so long
+                // as you specify a parent activity in AndroidManifest.xml.
+                int id = item.getItemId();
+
+                //noinspection SimplifiableIfStatement
+                if (id == R.id.action_settings) {
+                    startActivity(new Intent(getActivity(), SettingsActivity.class));
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
+        // Retrieve the share menu item
+        MenuItem shareItem = mToolbar.getMenu().findItem(R.id.menu_item_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+
+        updateShareIntent();
+
+        if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity) {
+            FullScreenPlayerActivity activity = (FullScreenPlayerActivity) getActivity();
+            activity.setSupportActionBar(mToolbar);
+        }
+    }
+
+    private Intent createShareTrackIntent() {
+        if (mMusicService == null) return null;
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT,
+                getString(R.string.app_name) + " - " +
+                mMusicService.getSession().getCurrentTrack().name + " - " +
+                mMusicService.getSession().getCurrentTrack().previewUrl);
+        return shareIntent;
+    }
+
+    private void updateShareIntent() {
+        // Attach an intent to this ShareActionProvider.  You can update this at any time,
+        // like when the user selects a new piece of data they might like to share.
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(createShareTrackIntent());
+        } else {
+            Log.d(TAG, "Share action provider is null?");
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         Log.d(TAG, "FullScreenPlayerFragment onDestroyView called");
         viewsAreCreated = false;
 
         unbindService();
 
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+
         if (MainActivity.mIsLargeLayout) {
             showControlsFromDialogClose();
         }
-
-        super.onDestroyView();
     }
 
     public void unbindService() {
@@ -256,14 +330,20 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
             int duration = track.getDurationInMilli();
             mSeekbar.setMax(duration);
             mEnd.setText(formatMillis(duration));
+
+            // Update the share intent
+            updateShareIntent();
         }
     }
 
     private void showControlsFromDialogClose() {
         BaseActivity activity = (BaseActivity) getActivity();
-        activity.setSession();
-        activity.getmControlsFragment().setViewsInfo();
-        activity.showPlaybackControls();
+
+        if (activity != null) {
+            activity.setSession();
+            activity.getmControlsFragment().setViewsInfo();
+            activity.showPlaybackControls();
+        }
     }
 
 
@@ -420,6 +500,7 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
             mMusicService.registerCallback(FullScreenPlayerFragment.this);
             setOnPlayerStateChanged();
             onStateChanged(mMusicService.isPlaying());
+            updateShareIntent();
 
             serviceBound = true;
         }

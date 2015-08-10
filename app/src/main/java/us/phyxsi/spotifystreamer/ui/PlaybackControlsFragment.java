@@ -68,6 +68,7 @@ public class PlaybackControlsFragment extends Fragment implements
             public void onClick(View v) {
                 if (mMusicService != null) mMusicService.togglePlay();
 
+                assert mMusicService != null;
                 mPlayPause.setImageDrawable((mMusicService.isPlaying()) ? mPauseDrawable : mPlayDrawable);
             }
         });
@@ -175,16 +176,14 @@ public class PlaybackControlsFragment extends Fragment implements
     }
 
     public boolean shouldShowControls() {
-        if (mMusicService == null || mSession == null || mSession.getCurrentTrack() == null)
-            return false;
-
-        return true;
+        return !(mMusicService == null || mSession == null || mSession.getCurrentTrack() == null);
     }
 
     protected void setSession() {
+        if (mMusicService == null) return;
         mSession = mMusicService.getSession();
 
-        if (mMusicService != null) mMusicService.setOnStateChangeListener(this);
+        mMusicService.setOnStateChangeListener(this);
 
         onStateChanged(mMusicService.isPlaying());
     }

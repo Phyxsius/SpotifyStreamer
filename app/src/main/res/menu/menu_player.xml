@@ -2,6 +2,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="us.phyxsi.spotifystreamer.ui.FullScreenPlayerActivity">
+
+    <item
+        android:id="@+id/menu_item_share"
+        android:title="@string/action_share"
+        android:icon="@drawable/abc_ic_menu_share_mtrl_alpha"
+        app:showAsAction="ifRoom"
+        app:actionProviderClass=
+            "android.support.v7.widget.ShareActionProvider" />
+
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
 </menu>
