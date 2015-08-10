@@ -2,12 +2,14 @@ package us.phyxsi.spotifystreamer;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -33,6 +35,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private final IBinder mMusicBinder = new MusicBinder();
     private MediaPlayer mPlayer;
     private PlayerSession mSession;
+    private MediaNotificationManager mMediaNotificationManager;
 
     private List<MusicServiceCallback> mCallbacks;
 
@@ -75,6 +78,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         initializePlayer();
 
         play();
+
+        SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (prefs.getBoolean(getString(R.string.pref_notifications_key), true))
+            mMediaNotificationManager.startNotification();
     }
 
     public boolean isPlaying() {
@@ -122,6 +131,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         super.onCreate();
 
         initializePlayer();
+
+        mMediaNotificationManager = new MediaNotificationManager(this);
     }
 
     @Override
@@ -304,6 +315,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (mOnStateChangeListener != null) {
             mOnStateChangeListener.onStateChanged(isPlaying);
         }
+
+        SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (prefs.getBoolean(getString(R.string.pref_notifications_key), true))
+            mMediaNotificationManager.updateState();
     }
 
     public interface OnStateChangeListener {

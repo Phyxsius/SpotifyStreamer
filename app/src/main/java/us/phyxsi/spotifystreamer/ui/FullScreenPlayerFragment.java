@@ -175,18 +175,10 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
             }
         });
 
-        viewsAreCreated = true;
 
-        setViewsInfo(mTrack);
-
-        return view;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Toolbar
-        mToolbar.setTitle(getString(R.string.now_playing));
-        mToolbar.inflateMenu(R.menu.menu_player);
+        if (isAdded()) mToolbar.setTitle(getString(R.string.now_playing));
+
         mToolbar.setNavigationIcon(R.drawable.abc_ic_clear_mtrl_alpha);
 
         // Close/back button
@@ -198,6 +190,24 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
                 unbindService();
             }
         });
+
+        if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity) {
+            FullScreenPlayerActivity activity = (FullScreenPlayerActivity) getActivity();
+            activity.setSupportActionBar(mToolbar);
+        }
+
+        viewsAreCreated = true;
+
+        setViewsInfo(mTrack);
+
+        updateShareIntent();
+
+        return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        mToolbar.inflateMenu(R.menu.menu_player);
 
         // Settings menu
         mToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -225,11 +235,6 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
 
         updateShareIntent();
-
-        if (getActivity() != null && getActivity() instanceof FullScreenPlayerActivity) {
-            FullScreenPlayerActivity activity = (FullScreenPlayerActivity) getActivity();
-            activity.setSupportActionBar(mToolbar);
-        }
     }
 
     private Intent createShareTrackIntent() {
