@@ -153,6 +153,8 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
                 isPlaying = !isPlaying;
 
                 if (mMusicService != null) mMusicService.togglePlay();
+
+                mPlayPause.setImageDrawable((mMusicService.isPlaying()) ? mPauseDrawable : mPlayDrawable);
             }
         });
 
@@ -312,7 +314,6 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
         if (mPlayIntent == null) {
             Activity activity = getActivity();
             mPlayIntent = new Intent(activity, MusicService.class);
-//            activity.startService(mPlayIntent);
             activity.bindService(mPlayIntent, streamingConnection, activity.BIND_AUTO_CREATE);
         }
     }
@@ -502,10 +503,10 @@ public class FullScreenPlayerFragment extends DialogFragment implements com.squa
                 mMusicService.setSession(mSession);
             }
 
+            updateShareIntent();
             mMusicService.registerCallback(FullScreenPlayerFragment.this);
             setOnPlayerStateChanged();
             onStateChanged(mMusicService.isPlaying());
-            updateShareIntent();
 
             serviceBound = true;
         }
